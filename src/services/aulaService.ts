@@ -1,69 +1,90 @@
 
 import { Aula, AulaFormData } from "../types/aula";
-
-// Chave para armazenar aulas no localStorage
-const AULAS_STORAGE_KEY = "aulas_cadastradas";
+import { supabase } from "@/integrations/supabase/client";
 
 // Obter todas as aulas
-export const getAulas = (): Aula[] => {
-  const aulasString = localStorage.getItem(AULAS_STORAGE_KEY);
-  if (!aulasString) return [];
+export const getAulas = async (): Promise<Aula[]> => {
+  const { data, error } = await supabase
+    .from('aulas')
+    .select('*')
+    .order('nome');
   
-  try {
-    const aulas = JSON.parse(aulasString);
-    // Convertendo strings de data em objetos Date
-    return aulas.map((aula: any) => ({
-      ...aula,
-      dataCadastro: new Date(aula.dataCadastro)
-    }));
-  } catch (error) {
+  if (error) {
     console.error("Erro ao obter aulas:", error);
     return [];
   }
+  
+  // Converter strings de data em objetos Date
+  return data.map((aula: any) => ({
+    ...aula,
+    data_cadastro: new Date(aula.data_cadastro),
+    valor: Number(aula.valor) // Garantir que valor seja um número
+  }));
 };
 
 // Adicionar uma nova aula
-export const adicionarAula = (aulaData: AulaFormData): Aula => {
-  const aulas = getAulas();
+export const adicionarAula = async (aulaData: AulaFormData): Promise<Aula | null> => {
+  const { data, error } = await supabase
+    .from('aulas')
+    .insert({
+      nome: aulaData.nome,
+      valor: aulaData.valor,
+      periodicidade: aulaData.periodicidade,
+      vezes_semanais: aulaData.vezes_semanais
+    })
+    .select()
+    .single();
   
-  const novaAula: Aula = {
-    ...aulaData,
-    id: crypto.randomUUID(),
-    dataCadastro: new Date()
+  if (error) {
+    console.error("Erro ao adicionar aula:", error);
+    return null;
+  }
+  
+  return {
+    ...data,
+    data_cadastro: new Date(data.data_cadastro),
+    valor: Number(data.valor)
   };
-  
-  const novaLista = [...aulas, novaAula];
-  localStorage.setItem(AULAS_STORAGE_KEY, JSON.stringify(novaLista));
-  
-  return novaAula;
 };
 
 // Atualizar uma aula existente
-export const atualizarAula = (id: string, aulaData: AulaFormData): Aula | null => {
-  const aulas = getAulas();
-  const aulaIndex = aulas.findIndex(a => a.id === id);
+export const atualizarAula = async (id: string, aulaData: AulaFormData): Promise<Aula | null> => {
+  const { data, error } = await supabase
+    .from('aulas')
+    .update({
+      nome: aulaData.nome,
+      valor: aulaData.valor,
+      periodicidade: aulaData.periodicidade,
+      vezes_semanais: aulaData.vezes_semanais
+    })
+    .eq('id', id)
+    .select()
+    .single();
   
-  if (aulaIndex === -1) return null;
+  if (error) {
+    console.error("Erro ao atualizar aula:", error);
+    return null;
+  }
   
-  const aulaAtualizada: Aula = {
-    ...aulas[aulaIndex],
-    ...aulaData
+  return {
+    ...data,
+    data_cadastro: new Date(data.data_cadastro),
+    valor: Number(data.valor)
   };
-  
-  aulas[aulaIndex] = aulaAtualizada;
-  localStorage.setItem(AULAS_STORAGE_KEY, JSON.stringify(aulas));
-  
-  return aulaAtualizada;
 };
 
 // Excluir uma aula
-export const excluirAula = (id: string): boolean => {
-  const aulas = getAulas();
-  const novaLista = aulas.filter(a => a.id !== id);
+export const excluirAula = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('aulas')
+    .delete()
+    .eq('id', id);
   
-  if (novaLista.length === aulas.length) return false;
+  if (error) {
+    console.error("Erro ao excluir aula:", error);
+    return false;
+  }
   
-  localStorage.setItem(AULAS_STORAGE_KEY, JSON.stringify(novaLista));
   return true;
 };
 

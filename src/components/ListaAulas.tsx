@@ -68,7 +68,7 @@ const ListaAulas: React.FC<ListaAulasProps> = ({ aulas, onEditar, onExcluir }) =
                     <TableCell className="font-medium">{aula.nome}</TableCell>
                     <TableCell>{formatarMoeda(aula.valor)}</TableCell>
                     <TableCell>{formatarPeriodicidade(aula.periodicidade)}</TableCell>
-                    <TableCell>{formatarVezesSemanais(aula.vezesSemanais)}</TableCell>
+                    <TableCell>{formatarVezesSemanais(aula.vezes_semanais)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
                         <Button

@@ -13,31 +13,72 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Book } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate, Link } from 'react-router-dom';
+import Alunos from './Alunos';
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [aulas, setAulas] = useState<Aula[]>([]);
   const [aulaParaEditar, setAulaParaEditar] = useState<Aula | null>(null);
   const [aulaParaExcluir, setAulaParaExcluir] = useState<Aula | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('aulas');
 
-  // Carregar aulas do localStorage ao iniciar
+  // Carregar aulas do banco de dados ao iniciar
   useEffect(() => {
-    const aulasCarregadas = getAulas();
-    setAulas(aulasCarregadas);
+    carregarAulas();
   }, []);
 
-  const handleSalvar = (formData: AulaFormData) => {
-    if (aulaParaEditar) {
-      // Editar aula existente
-      const aulaAtualizada = atualizarAula(aulaParaEditar.id, formData);
-      if (aulaAtualizada) {
-        setAulas(aulas.map(a => a.id === aulaParaEditar.id ? aulaAtualizada : a));
-        setAulaParaEditar(null);
+  const carregarAulas = async () => {
+    setLoading(true);
+    try {
+      const aulasCarregadas = await getAulas();
+      setAulas(aulasCarregadas);
+    } catch (error) {
+      console.error("Erro ao carregar aulas:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar a lista de aulas.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSalvar = async (formData: AulaFormData) => {
+    try {
+      if (aulaParaEditar) {
+        // Editar aula existente
+        const aulaAtualizada = await atualizarAula(aulaParaEditar.id, formData);
+        if (aulaAtualizada) {
+          setAulas(aulas.map(a => a.id === aulaParaEditar.id ? aulaAtualizada : a));
+          setAulaParaEditar(null);
+          toast({
+            title: "Aula atualizada",
+            description: `${formData.nome} foi atualizada com sucesso!`,
+          });
+        }
+      } else {
+        // Adicionar nova aula
+        const novaAula = await adicionarAula(formData);
+        if (novaAula) {
+          setAulas([...aulas, novaAula]);
+          toast({
+            title: "Aula adicionada",
+            description: `${formData.nome} foi adicionada com sucesso!`,
+          });
+        }
       }
-    } else {
-      // Adicionar nova aula
-      const novaAula = adicionarAula(formData);
-      setAulas([...aulas, novaAula]);
+    } catch (error) {
+      console.error("Erro ao salvar aula:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a aula.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -58,25 +99,34 @@ const Index = () => {
     }
   };
 
-  const confirmarExclusao = () => {
+  const confirmarExclusao = async () => {
     if (aulaParaExcluir) {
-      const sucesso = excluirAula(aulaParaExcluir.id);
-      
-      if (sucesso) {
-        setAulas(aulas.filter(a => a.id !== aulaParaExcluir.id));
-        toast({
-          title: "Aula excluída",
-          description: `${aulaParaExcluir.nome} foi removida com sucesso!`,
-        });
-      } else {
+      try {
+        const sucesso = await excluirAula(aulaParaExcluir.id);
+        
+        if (sucesso) {
+          setAulas(aulas.filter(a => a.id !== aulaParaExcluir.id));
+          toast({
+            title: "Aula excluída",
+            description: `${aulaParaExcluir.nome} foi removida com sucesso!`,
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível excluir a aula.",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao excluir aula:", error);
         toast({
           title: "Erro",
-          description: "Não foi possível excluir a aula.",
+          description: "Ocorreu um erro ao excluir a aula.",
           variant: "destructive"
         });
+      } finally {
+        setAulaParaExcluir(null);
       }
-      
-      setAulaParaExcluir(null);
     }
   };
 
@@ -95,55 +145,67 @@ const Index = () => {
       
       <main className="container mx-auto p-4 md:p-6">
         <div className="max-w-5xl mx-auto">
-          <section className="mb-8">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-                {aulaParaEditar ? "Editar Aula" : "Cadastro de Aulas"}
-              </h2>
-              <p className="text-gray-600">
-                {aulaParaEditar 
-                  ? "Atualize os detalhes da aula selecionada." 
-                  : "Preencha os detalhes para cadastrar uma nova aula."
-                }
-              </p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-md">
-              <FormularioAula 
-                onSalvar={handleSalvar}
-                aulaParaEditar={aulaParaEditar}
-                onCancelarEdicao={handleCancelarEdicao}
+          <Tabs defaultValue="aulas" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="aulas">Aulas</TabsTrigger>
+              <TabsTrigger value="alunos">Alunos</TabsTrigger>
+            </TabsList>
+            <TabsContent value="aulas">
+              <section className="mb-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+                    {aulaParaEditar ? "Editar Aula" : "Cadastro de Aulas"}
+                  </h2>
+                  <p className="text-gray-600">
+                    {aulaParaEditar 
+                      ? "Atualize os detalhes da aula selecionada." 
+                      : "Preencha os detalhes para cadastrar uma nova aula."
+                    }
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow-md">
+                  <FormularioAula 
+                    onSalvar={handleSalvar}
+                    aulaParaEditar={aulaParaEditar}
+                    onCancelarEdicao={handleCancelarEdicao}
+                  />
+                </div>
+              </section>
+              
+              <Separator className="my-8" />
+              
+              <section>
+                <div className="bg-white rounded-lg shadow-md">
+                  <ListaAulas 
+                    aulas={aulas}
+                    onEditar={handleEditar}
+                    onExcluir={handleExcluir}
+                  />
+                </div>
+              </section>
+              
+              {/* Diálogo de confirmação de exclusão */}
+              <ConfirmacaoExclusao
+                aberto={!!aulaParaExcluir}
+                aulaName={aulaParaExcluir?.nome || ''}
+                onConfirmar={confirmarExclusao}
+                onCancelar={cancelarExclusao}
               />
-            </div>
-          </section>
-          
-          <Separator className="my-8" />
-          
-          <section>
-            <div className="bg-white rounded-lg shadow-md">
-              <ListaAulas 
-                aulas={aulas}
-                onEditar={handleEditar}
-                onExcluir={handleExcluir}
-              />
-            </div>
-          </section>
+            </TabsContent>
+
+            <TabsContent value="alunos">
+              <Alunos />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
       
       <footer className="mt-12 py-6 bg-gray-100 text-center text-gray-600">
         <div className="container mx-auto px-4">
-          <p>© {new Date().getFullYear()} Aula Planner Brasil - Sistema de Cadastro de Aulas</p>
+          <p>© {new Date().getFullYear()} Aula Planner Brasil - Sistema de Cadastro de Aulas e Alunos</p>
         </div>
       </footer>
-      
-      {/* Diálogo de confirmação de exclusão */}
-      <ConfirmacaoExclusao
-        aberto={!!aulaParaExcluir}
-        aulaName={aulaParaExcluir?.nome || ''}
-        onConfirmar={confirmarExclusao}
-        onCancelar={cancelarExclusao}
-      />
     </div>
   );
 };

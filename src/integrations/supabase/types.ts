@@ -9,7 +9,155 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      alunos: {
+        Row: {
+          cpf: string
+          data_cadastro: string
+          data_nascimento: string
+          email: string | null
+          endereco: string | null
+          id: string
+          menor_idade: boolean
+          nome: string
+          responsavel_id: string | null
+          rg: string | null
+          telefone: string | null
+        }
+        Insert: {
+          cpf: string
+          data_cadastro?: string
+          data_nascimento: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          menor_idade?: boolean
+          nome: string
+          responsavel_id?: string | null
+          rg?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          cpf?: string
+          data_cadastro?: string
+          data_nascimento?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          menor_idade?: boolean
+          nome?: string
+          responsavel_id?: string | null
+          rg?: string | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alunos_responsavel_id_fkey"
+            columns: ["responsavel_id"]
+            isOneToOne: false
+            referencedRelation: "responsaveis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aulas: {
+        Row: {
+          data_cadastro: string
+          id: string
+          nome: string
+          periodicidade: string
+          valor: number
+          vezes_semanais: number
+        }
+        Insert: {
+          data_cadastro?: string
+          id?: string
+          nome: string
+          periodicidade: string
+          valor: number
+          vezes_semanais: number
+        }
+        Update: {
+          data_cadastro?: string
+          id?: string
+          nome?: string
+          periodicidade?: string
+          valor?: number
+          vezes_semanais?: number
+        }
+        Relationships: []
+      }
+      matriculas: {
+        Row: {
+          aluno_id: string
+          ativa: boolean
+          aula_id: string
+          data_matricula: string
+          id: string
+        }
+        Insert: {
+          aluno_id: string
+          ativa?: boolean
+          aula_id: string
+          data_matricula?: string
+          id?: string
+        }
+        Update: {
+          aluno_id?: string
+          ativa?: boolean
+          aula_id?: string
+          data_matricula?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matriculas_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matriculas_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      responsaveis: {
+        Row: {
+          cpf: string
+          data_nascimento: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          rg: string | null
+          telefone: string | null
+        }
+        Insert: {
+          cpf: string
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          rg?: string | null
+          telefone?: string | null
+        }
+        Update: {
+          cpf?: string
+          data_nascimento?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          rg?: string | null
+          telefone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
