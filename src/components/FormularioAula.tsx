@@ -24,7 +24,7 @@ const FormularioAula: React.FC<FormularioAulaProps> = ({
     nome: '',
     valor: 0,
     periodicidade: 'mensal',
-    vezesSemanais: 1
+    vezes_semanais: 1
   });
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const FormularioAula: React.FC<FormularioAulaProps> = ({
         nome: aulaParaEditar.nome,
         valor: aulaParaEditar.valor,
         periodicidade: aulaParaEditar.periodicidade,
-        vezesSemanais: aulaParaEditar.vezesSemanais
+        vezes_semanais: aulaParaEditar.vezes_semanais
       });
     }
   }, [aulaParaEditar]);
@@ -67,7 +67,7 @@ const FormularioAula: React.FC<FormularioAulaProps> = ({
         nome: '',
         valor: 0,
         periodicidade: 'mensal',
-        vezesSemanais: 1
+        vezes_semanais: 1
       });
     }
     
@@ -85,7 +85,7 @@ const FormularioAula: React.FC<FormularioAulaProps> = ({
         ...formData,
         [name]: parseFloat(value) || 0
       });
-    } else if (name === 'vezesSemanais') {
+    } else if (name === 'vezes_semanais') {
       setFormData({
         ...formData,
         [name]: parseInt(value) || 1
@@ -163,14 +163,14 @@ const FormularioAula: React.FC<FormularioAulaProps> = ({
           </div>
 
           <div className="grid w-full items-center gap-3">
-            <Label htmlFor="vezesSemanais" className="text-base">Aulas por Semana</Label>
+            <Label htmlFor="vezes_semanais" className="text-base">Aulas por Semana</Label>
             <Input 
-              id="vezesSemanais"
-              name="vezesSemanais"
+              id="vezes_semanais"
+              name="vezes_semanais"
               type="number"
               min="1"
               max="7"
-              value={formData.vezesSemanais}
+              value={formData.vezes_semanais}
               onChange={handleChange}
               className="w-full"
               required

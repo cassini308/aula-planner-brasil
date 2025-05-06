@@ -1,4 +1,3 @@
-
 import { Aula, AulaFormData } from "../types/aula";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -44,7 +43,7 @@ export const adicionarAula = async (aulaData: AulaFormData): Promise<Aula | null
     ...data,
     data_cadastro: new Date(data.data_cadastro),
     valor: Number(data.valor)
-  };
+  } as Aula;
 };
 
 // Atualizar uma aula existente
@@ -70,7 +69,7 @@ export const atualizarAula = async (id: string, aulaData: AulaFormData): Promise
     ...data,
     data_cadastro: new Date(data.data_cadastro),
     valor: Number(data.valor)
-  };
+  } as Aula;
 };
 
 // Excluir uma aula

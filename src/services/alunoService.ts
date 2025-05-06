@@ -59,7 +59,7 @@ export const adicionarAluno = async (
         cpf: responsavelData.cpf,
         rg: responsavelData.rg || null,
         endereco: responsavelData.endereco || null,
-        data_nascimento: responsavelData.data_nascimento || null
+        data_nascimento: responsavelData.data_nascimento ? responsavelData.data_nascimento.toISOString().split('T')[0] : null
       })
       .select()
       .single();
@@ -82,7 +82,7 @@ export const adicionarAluno = async (
       cpf: alunoData.cpf,
       rg: alunoData.rg || null,
       endereco: alunoData.endereco || null,
-      data_nascimento: alunoData.data_nascimento,
+      data_nascimento: alunoData.data_nascimento.toISOString().split('T')[0],
       responsavel_id: responsavelId,
       menor_idade: !!alunoData.menor_idade
     })
@@ -123,7 +123,7 @@ export const atualizarAluno = async (
           cpf: responsavelData.cpf,
           rg: responsavelData.rg || null,
           endereco: responsavelData.endereco || null,
-          data_nascimento: responsavelData.data_nascimento || null
+          data_nascimento: responsavelData.data_nascimento ? responsavelData.data_nascimento.toISOString().split('T')[0] : null
         })
         .eq('id', aluno.responsavel_id);
     } else {
@@ -137,7 +137,7 @@ export const atualizarAluno = async (
           cpf: responsavelData.cpf,
           rg: responsavelData.rg || null,
           endereco: responsavelData.endereco || null,
-          data_nascimento: responsavelData.data_nascimento || null
+          data_nascimento: responsavelData.data_nascimento ? responsavelData.data_nascimento.toISOString().split('T')[0] : null
         })
         .select()
         .single();
@@ -158,7 +158,7 @@ export const atualizarAluno = async (
       cpf: alunoData.cpf,
       rg: alunoData.rg || null,
       endereco: alunoData.endereco || null,
-      data_nascimento: alunoData.data_nascimento,
+      data_nascimento: alunoData.data_nascimento.toISOString().split('T')[0],
       menor_idade: !!alunoData.menor_idade
     })
     .eq('id', id)
