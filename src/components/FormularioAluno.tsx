@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { verificarCpfExistente } from '@/services/alunoService';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -44,6 +44,9 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
     data_nascimento: null
   });
 
+  // Estado para armazenar a data como string para os campos de input
+  const [dataNascimentoStr, setDataNascimentoStr] = useState('');
+  const [dataNascimentoRespStr, setDataNascimentoRespStr] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -58,6 +61,7 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
         data_nascimento: new Date(alunoParaEditar.data_nascimento),
         menor_idade: alunoParaEditar.menor_idade
       });
+      setDataNascimentoStr(format(new Date(alunoParaEditar.data_nascimento), 'dd/MM/yyyy'));
 
       if (alunoParaEditar.responsavel) {
         setResponsavelData({
@@ -70,6 +74,10 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
           data_nascimento: alunoParaEditar.responsavel.data_nascimento ? 
             new Date(alunoParaEditar.responsavel.data_nascimento) : null
         });
+        
+        if (alunoParaEditar.responsavel.data_nascimento) {
+          setDataNascimentoRespStr(format(new Date(alunoParaEditar.responsavel.data_nascimento), 'dd/MM/yyyy'));
+        }
       }
     }
   }, [alunoParaEditar]);
@@ -88,6 +96,16 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
       toast({
         title: "Erro no formulário",
         description: "CPF do aluno é obrigatório",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    // Verifica data de nascimento
+    if (!dataNascimentoStr) {
+      toast({
+        title: "Erro no formulário",
+        description: "Data de nascimento do aluno é obrigatória",
         variant: "destructive"
       });
       return false;
@@ -166,6 +184,9 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
           endereco: '',
           data_nascimento: null
         });
+
+        setDataNascimentoStr('');
+        setDataNascimentoRespStr('');
       }
     }
     
@@ -192,34 +213,61 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dateValue = e.target.value;
-    setFormData({
-      ...formData,
-      data_nascimento: new Date(dateValue)
-    });
+    setDataNascimentoStr(dateValue);
     
-    // Calcula se é menor de idade
-    const hoje = new Date();
-    const dataNascimento = new Date(dateValue);
-    const idade = hoje.getFullYear() - dataNascimento.getFullYear();
-    const menorIdade = idade < 18 || (
-      idade === 18 && 
-      (hoje.getMonth() < dataNascimento.getMonth() || 
-        (hoje.getMonth() === dataNascimento.getMonth() && hoje.getDate() < dataNascimento.getDate())
-      )
-    );
-    
-    setFormData(prev => ({
-      ...prev,
-      menor_idade: menorIdade
-    }));
+    try {
+      // Tenta converter a string de data para o formato Date
+      const date = parse(dateValue, 'dd/MM/yyyy', new Date());
+      
+      if (!isNaN(date.getTime())) {
+        setFormData({
+          ...formData,
+          data_nascimento: date
+        });
+        
+        // Calcula se é menor de idade
+        const hoje = new Date();
+        const idade = hoje.getFullYear() - date.getFullYear();
+        const menorIdade = idade < 18 || (
+          idade === 18 && 
+          (hoje.getMonth() < date.getMonth() || 
+            (hoje.getMonth() === date.getMonth() && hoje.getDate() < date.getDate())
+          )
+        );
+        
+        setFormData(prev => ({
+          ...prev,
+          menor_idade: menorIdade,
+          data_nascimento: date
+        }));
+      }
+    } catch (error) {
+      console.error("Erro ao converter data:", error);
+    }
   };
 
   const handleResponsavelDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dateValue = e.target.value;
-    setResponsavelData({
-      ...responsavelData,
-      data_nascimento: dateValue ? new Date(dateValue) : null
-    });
+    setDataNascimentoRespStr(dateValue);
+    
+    try {
+      if (dateValue) {
+        const date = parse(dateValue, 'dd/MM/yyyy', new Date());
+        if (!isNaN(date.getTime())) {
+          setResponsavelData({
+            ...responsavelData,
+            data_nascimento: date
+          });
+        }
+      } else {
+        setResponsavelData({
+          ...responsavelData,
+          data_nascimento: null
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao converter data do responsável:", error);
+    }
   };
 
   return (
@@ -320,12 +368,14 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
             <Input 
               id="data_nascimento"
               name="data_nascimento"
-              type="date"
-              value={format(formData.data_nascimento, 'yyyy-MM-dd')}
+              type="text"
+              placeholder="DD/MM/AAAA"
+              value={dataNascimentoStr}
               onChange={handleDateChange}
               className="w-full"
               required
             />
+            <p className="text-xs text-gray-500">Digite a data no formato dia/mês/ano (DD/MM/AAAA)</p>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -434,11 +484,13 @@ const FormularioAluno: React.FC<FormularioAlunoProps> = ({
                 <Input 
                   id="resp_data_nascimento"
                   name="data_nascimento"
-                  type="date"
-                  value={responsavelData.data_nascimento ? format(responsavelData.data_nascimento, 'yyyy-MM-dd') : ''}
+                  type="text"
+                  placeholder="DD/MM/AAAA"
+                  value={dataNascimentoRespStr}
                   onChange={handleResponsavelDateChange}
                   className="w-full"
                 />
+                <p className="text-xs text-gray-500">Digite a data no formato dia/mês/ano (DD/MM/AAAA)</p>
               </div>
             </div>
           )}

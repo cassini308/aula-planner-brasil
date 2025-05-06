@@ -50,6 +50,7 @@ export const adicionarAluno = async (
   let responsavelId = null;
   
   if (alunoData.menor_idade && responsavelData) {
+    console.log("Cadastrando responsável:", responsavelData);
     const { data: respData, error: respError } = await supabase
       .from('responsaveis')
       .insert({
@@ -59,7 +60,9 @@ export const adicionarAluno = async (
         cpf: responsavelData.cpf,
         rg: responsavelData.rg || null,
         endereco: responsavelData.endereco || null,
-        data_nascimento: responsavelData.data_nascimento ? responsavelData.data_nascimento.toISOString().split('T')[0] : null
+        data_nascimento: responsavelData.data_nascimento 
+          ? responsavelData.data_nascimento.toISOString().split('T')[0] 
+          : null
       })
       .select()
       .single();
@@ -70,6 +73,7 @@ export const adicionarAluno = async (
     }
     
     responsavelId = respData.id;
+    console.log("Responsável cadastrado com ID:", responsavelId);
   }
   
   // Agora cadastra o aluno
@@ -111,10 +115,15 @@ export const atualizarAluno = async (
   if (!aluno) return null;
   
   // Se for menor de idade, atualiza ou cria o responsável
+  let responsavelId = aluno.responsavel_id;
+  
   if (alunoData.menor_idade && responsavelData) {
+    console.log("Processando responsável para atualização:", responsavelData);
+    
     if (aluno.responsavel_id) {
       // Atualiza o responsável existente
-      await supabase
+      console.log("Atualizando responsável existente:", aluno.responsavel_id);
+      const { error: respError } = await supabase
         .from('responsaveis')
         .update({
           nome: responsavelData.nome,
@@ -123,12 +132,19 @@ export const atualizarAluno = async (
           cpf: responsavelData.cpf,
           rg: responsavelData.rg || null,
           endereco: responsavelData.endereco || null,
-          data_nascimento: responsavelData.data_nascimento ? responsavelData.data_nascimento.toISOString().split('T')[0] : null
+          data_nascimento: responsavelData.data_nascimento 
+            ? responsavelData.data_nascimento.toISOString().split('T')[0] 
+            : null
         })
         .eq('id', aluno.responsavel_id);
+        
+      if (respError) {
+        console.error("Erro ao atualizar responsável:", respError);
+      }
     } else {
       // Cria um novo responsável
-      const { data: respData } = await supabase
+      console.log("Criando novo responsável");
+      const { data: respData, error: respError } = await supabase
         .from('responsaveis')
         .insert({
           nome: responsavelData.nome,
@@ -137,15 +153,23 @@ export const atualizarAluno = async (
           cpf: responsavelData.cpf,
           rg: responsavelData.rg || null,
           endereco: responsavelData.endereco || null,
-          data_nascimento: responsavelData.data_nascimento ? responsavelData.data_nascimento.toISOString().split('T')[0] : null
+          data_nascimento: responsavelData.data_nascimento 
+            ? responsavelData.data_nascimento.toISOString().split('T')[0] 
+            : null
         })
         .select()
         .single();
         
-      if (respData) {
-        alunoData = { ...alunoData, menor_idade: true };
+      if (respError) {
+        console.error("Erro ao criar novo responsável:", respError);
+      } else if (respData) {
+        responsavelId = respData.id;
+        console.log("Novo responsável criado com ID:", responsavelId);
       }
     }
+  } else if (!alunoData.menor_idade) {
+    // Se não é mais menor de idade, remove a associação com o responsável
+    responsavelId = null;
   }
   
   // Atualiza o aluno
@@ -159,6 +183,7 @@ export const atualizarAluno = async (
       rg: alunoData.rg || null,
       endereco: alunoData.endereco || null,
       data_nascimento: alunoData.data_nascimento.toISOString().split('T')[0],
+      responsavel_id: responsavelId,
       menor_idade: !!alunoData.menor_idade
     })
     .eq('id', id)
