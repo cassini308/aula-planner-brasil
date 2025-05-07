@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import FormularioAluno from '@/components/FormularioAluno';
 import ListaAlunos from '@/components/ListaAlunos';
+import MatriculasAluno from '@/components/MatriculasAluno';
 import ConfirmacaoExclusaoAluno from '@/components/ConfirmacaoExclusaoAluno';
 import { Aluno, AlunoFormData, ResponsavelFormData } from '@/types/aula';
 import { 
@@ -24,6 +25,7 @@ const Alunos = () => {
   const [alunoParaEditar, setAlunoParaEditar] = useState<any | null>(null);
   const [alunoParaExcluir, setAlunoParaExcluir] = useState<Aluno | null>(null);
   const [loading, setLoading] = useState(true);
+  const [matriculasAtualizadas, setMatriculasAtualizadas] = useState<boolean>(false);
 
   // Carregar alunos do banco de dados ao iniciar
   useEffect(() => {
@@ -152,6 +154,10 @@ const Alunos = () => {
     setAlunoParaExcluir(null);
   };
 
+  const handleMatriculaAtualizada = () => {
+    setMatriculasAtualizadas(!matriculasAtualizadas);
+  };
+
   return (
     <div>
       <section className="mb-8">
@@ -174,6 +180,13 @@ const Alunos = () => {
             onCancelarEdicao={handleCancelarEdicao}
           />
         </div>
+
+        {alunoParaEditar && (
+          <MatriculasAluno 
+            aluno={alunoParaEditar}
+            onUpdate={handleMatriculaAtualizada}
+          />
+        )}
       </section>
       
       <Separator className="my-8" />
@@ -184,6 +197,7 @@ const Alunos = () => {
             alunos={alunos}
             onEditar={handleEditar}
             onExcluir={handleExcluir}
+            onMatricular={handleMatriculaAtualizada}
           />
         </div>
       </section>

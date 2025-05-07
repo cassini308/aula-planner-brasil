@@ -12,10 +12,11 @@ import {
 } from '@/services/aulaService';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { Book } from 'lucide-react';
+import { Book, CreditCard } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, Link } from 'react-router-dom';
 import Alunos from './Alunos';
+import Mensalidades from './Mensalidades';
 
 const Index = () => {
   const { toast } = useToast();
@@ -149,6 +150,10 @@ const Index = () => {
             <TabsList className="mb-6">
               <TabsTrigger value="aulas">Aulas</TabsTrigger>
               <TabsTrigger value="alunos">Alunos</TabsTrigger>
+              <TabsTrigger value="mensalidades" className="flex items-center gap-2">
+                <CreditCard size={16} />
+                <span>Mensalidades</span>
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="aulas">
               <section className="mb-8">
@@ -196,6 +201,10 @@ const Index = () => {
 
             <TabsContent value="alunos">
               <Alunos />
+            </TabsContent>
+            
+            <TabsContent value="mensalidades">
+              <Mensalidades />
             </TabsContent>
           </Tabs>
         </div>

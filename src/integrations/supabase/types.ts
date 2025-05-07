@@ -125,6 +125,44 @@ export type Database = {
           },
         ]
       }
+      mensalidades: {
+        Row: {
+          data_criacao: string
+          data_pagamento: string | null
+          data_vencimento: string
+          id: string
+          matricula_id: string
+          status: string
+          valor: number
+        }
+        Insert: {
+          data_criacao?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          id?: string
+          matricula_id: string
+          status?: string
+          valor: number
+        }
+        Update: {
+          data_criacao?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          id?: string
+          matricula_id?: string
+          status?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensalidades_matricula_id_fkey"
+            columns: ["matricula_id"]
+            isOneToOne: false
+            referencedRelation: "matriculas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       responsaveis: {
         Row: {
           cpf: string

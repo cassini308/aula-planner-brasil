@@ -1,20 +1,29 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Aluno } from '@/types/aula';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, BookOpen } from 'lucide-react';
 import { formatarCpf, formatarTelefone, formatarData } from '@/services/alunoService';
+import MatricularAluno from './MatricularAluno';
 
 interface ListaAlunosProps {
   alunos: Aluno[];
   onEditar: (aluno: Aluno) => void;
   onExcluir: (id: string) => void;
+  onMatricular?: (aluno: Aluno) => void;
 }
 
-const ListaAlunos: React.FC<ListaAlunosProps> = ({ alunos, onEditar, onExcluir }) => {
+const ListaAlunos: React.FC<ListaAlunosProps> = ({ alunos, onEditar, onExcluir, onMatricular }) => {
+  const [matriculaAtualizada, setMatriculaAtualizada] = useState<boolean>(false);
+
+  const handleMatriculaSuccess = () => {
+    setMatriculaAtualizada(!matriculaAtualizada);
+    if (onMatricular) onMatricular(alunos[0]);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -73,6 +82,10 @@ const ListaAlunos: React.FC<ListaAlunosProps> = ({ alunos, onEditar, onExcluir }
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
+                        <MatricularAluno 
+                          aluno={aluno}
+                          onSuccess={handleMatriculaSuccess}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

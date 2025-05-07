@@ -64,3 +64,32 @@ export interface ResponsavelFormData {
   endereco: string;
   data_nascimento: Date | null;
 }
+
+// Novos tipos para matrículas e mensalidades
+export interface Matricula {
+  id: string;
+  aluno_id: string;
+  aula_id: string;
+  data_matricula: Date;
+  ativa: boolean;
+  aluno?: Aluno;
+  aula?: Aula;
+}
+
+export interface MatriculaFormData {
+  aluno_id: string;
+  aula_id: string;
+}
+
+export type StatusMensalidade = 'pendente' | 'pago' | 'atrasado' | 'cancelado';
+
+export interface Mensalidade {
+  id: string;
+  matricula_id: string;
+  data_vencimento: Date;
+  valor: number;
+  status: StatusMensalidade;
+  data_pagamento: Date | null;
+  data_criacao: Date;
+  matricula?: Matricula;
+}
