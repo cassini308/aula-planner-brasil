@@ -290,3 +290,11 @@ export const formatarTelefone = (telefone: string): string => {
 export const formatarData = (data: Date): string => {
   return new Intl.DateTimeFormat('pt-BR').format(data);
 };
+
+// Formatar moeda (nova função)
+export const formatarMoeda = (valor: number): string => {
+  return new Intl.NumberFormat('pt-BR', { 
+    style: 'currency', 
+    currency: 'BRL' 
+  }).format(valor);
+};

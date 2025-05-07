@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Aula, Aluno, Matricula, MatriculaFormData, Mensalidade, StatusMensalidade } from "../types/aula";
-import { formatarData, formatarMoeda } from "./alunoService";
+import { formatarData } from "./alunoService";
 import { addMonths, addDays, addYears } from 'date-fns';
 
 // Obter todas as matrículas

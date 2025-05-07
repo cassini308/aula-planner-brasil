@@ -152,7 +152,7 @@ export const registrarPagamento = async (mensalidadeId: string): Promise<Mensali
   const { data: mensalidadeAtualizada, error: updateError } = await supabase
     .from('mensalidades')
     .update({
-      status: 'pago',
+      status: 'pago' as StatusMensalidade,
       data_pagamento: new Date().toISOString()
     })
     .eq('id', mensalidadeId)
@@ -185,7 +185,8 @@ export const registrarPagamento = async (mensalidadeId: string): Promise<Mensali
     data_vencimento: new Date(mensalidadeAtualizada.data_vencimento),
     data_pagamento: mensalidadeAtualizada.data_pagamento ? new Date(mensalidadeAtualizada.data_pagamento) : null,
     data_criacao: new Date(mensalidadeAtualizada.data_criacao),
-    valor: Number(mensalidadeAtualizada.valor)
+    valor: Number(mensalidadeAtualizada.valor),
+    status: mensalidadeAtualizada.status as StatusMensalidade
   } : null;
 };
 
@@ -220,7 +221,8 @@ export const atualizarStatusMensalidade = async (
     data_vencimento: new Date(data.data_vencimento),
     data_pagamento: data.data_pagamento ? new Date(data.data_pagamento) : null,
     data_criacao: new Date(data.data_criacao),
-    valor: Number(data.valor)
+    valor: Number(data.valor),
+    status: data.status as StatusMensalidade
   } : null;
 };
 
