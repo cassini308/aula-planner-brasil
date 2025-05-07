@@ -37,6 +37,7 @@ const MatricularAluno: React.FC<MatricularAlunoProps> = ({ aluno, onSuccess }) =
     setLoading(true);
     try {
       const aulasDisponiveis = await getAulas();
+      console.log("Aulas carregadas:", aulasDisponiveis);
       setAulas(aulasDisponiveis);
     } catch (error) {
       console.error("Erro ao carregar aulas:", error);
@@ -60,11 +61,14 @@ const MatricularAluno: React.FC<MatricularAlunoProps> = ({ aluno, onSuccess }) =
     setError(null);
 
     try {
+      console.log("Tentando matricular aluno", aluno.id, "na aula", aulaId);
+      
       // Verificar se já existe matrícula ativa para este aluno nesta aula
       const matriculaExistente = await verificarMatriculaExistente(aluno.id, aulaId);
       
       if (matriculaExistente) {
         setError("Este aluno já está matriculado nesta aula.");
+        setLoading(false);
         return;
       }
 
@@ -75,6 +79,7 @@ const MatricularAluno: React.FC<MatricularAlunoProps> = ({ aluno, onSuccess }) =
       });
 
       if (novaMatricula) {
+        console.log("Matrícula realizada com sucesso:", novaMatricula);
         setSuccess(true);
         toast({
           title: "Matrícula realizada",

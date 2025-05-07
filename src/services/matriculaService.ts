@@ -116,6 +116,8 @@ export const calcularProximoVencimentoAposPagamento = (
 
 // Adicionar uma nova matrícula
 export const adicionarMatricula = async (matriculaData: MatriculaFormData): Promise<Matricula | null> => {
+  console.log("Iniciando processo de matrícula:", matriculaData);
+  
   // Verificar se o aluno já está matriculado nesta aula
   const jaMatriculado = await verificarMatriculaExistente(
     matriculaData.aluno_id,
@@ -139,46 +141,59 @@ export const adicionarMatricula = async (matriculaData: MatriculaFormData): Prom
     return null;
   }
 
-  // Criar a transação para garantir que tanto a matrícula quanto a mensalidade sejam criadas
-  // Como o Supabase não suporta transações com o SDK, vamos fazer operações sequenciais
+  console.log("Dados da aula obtidos:", aulaData);
   
-  // 1. Criar a matrícula
-  const { data: matriculaInserida, error: matriculaError } = await supabase
-    .from('matriculas')
-    .insert({
-      aluno_id: matriculaData.aluno_id,
-      aula_id: matriculaData.aula_id,
-    })
-    .select()
-    .single();
+  try {
+    // 1. Criar a matrícula - usando essa abordagem para contornar problemas de RLS
+    const { data: matriculaInserida, error: matriculaError } = await supabase
+      .from('matriculas')
+      .insert({
+        aluno_id: matriculaData.aluno_id,
+        aula_id: matriculaData.aula_id,
+        data_matricula: new Date().toISOString(),
+        ativa: true
+      })
+      .select()
+      .single();
 
-  if (matriculaError || !matriculaInserida) {
-    console.error("Erro ao adicionar matrícula:", matriculaError);
+    if (matriculaError || !matriculaInserida) {
+      console.error("Erro ao adicionar matrícula:", matriculaError);
+      return null;
+    }
+
+    console.log("Matrícula criada com sucesso:", matriculaInserida);
+
+    // 2. Criar a primeira mensalidade
+    const dataVencimento = calcularProximoVencimento(aulaData.periodicidade);
+    
+    console.log("Criando mensalidade com vencimento:", dataVencimento);
+    
+    const { data: mensalidadeInserida, error: mensalidadeError } = await supabase
+      .from('mensalidades')
+      .insert({
+        matricula_id: matriculaInserida.id,
+        data_vencimento: dataVencimento.toISOString().split('T')[0],
+        valor: aulaData.valor,
+        status: 'pendente'
+      })
+      .select()
+      .single();
+
+    if (mensalidadeError) {
+      console.error("Erro ao criar mensalidade:", mensalidadeError);
+      // Mesmo com erro na mensalidade, retornamos a matrícula criada
+    } else {
+      console.log("Mensalidade criada com sucesso:", mensalidadeInserida);
+    }
+
+    return {
+      ...matriculaInserida,
+      data_matricula: new Date(matriculaInserida.data_matricula)
+    };
+  } catch (error) {
+    console.error("Erro durante o processo de matrícula:", error);
     return null;
   }
-
-  // 2. Criar a primeira mensalidade
-  const dataVencimento = calcularProximoVencimento(aulaData.periodicidade);
-  
-  const { error: mensalidadeError } = await supabase
-    .from('mensalidades')
-    .insert({
-      matricula_id: matriculaInserida.id,
-      data_vencimento: dataVencimento.toISOString().split('T')[0],
-      valor: aulaData.valor,
-      status: 'pendente'
-    });
-
-  if (mensalidadeError) {
-    console.error("Erro ao criar mensalidade:", mensalidadeError);
-    // Idealmente, deveríamos reverter a matrícula, mas sem transações no SDK, fica mais complexo
-    // No mundo real, isso deveria ser feito com uma function no banco de dados
-  }
-
-  return {
-    ...matriculaInserida,
-    data_matricula: new Date(matriculaInserida.data_matricula)
-  };
 };
 
 // Cancelar uma matrícula
