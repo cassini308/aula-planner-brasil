@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agendamentos: {
+        Row: {
+          aluno_id: string
+          aula_id: string
+          created_at: string
+          dia_semana: number
+          hora_inicio: number
+          id: string
+        }
+        Insert: {
+          aluno_id: string
+          aula_id: string
+          created_at?: string
+          dia_semana: number
+          hora_inicio: number
+          id?: string
+        }
+        Update: {
+          aluno_id?: string
+          aula_id?: string
+          created_at?: string
+          dia_semana?: number
+          hora_inicio?: number
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alunos: {
         Row: {
           cpf: string

@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import ListaAlunos from "@/components/ListaAlunos";
 import ListaAulas from "@/components/ListaAulas";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { CalendarCheck, List, Calendar } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { CalendarCheck, List, Calendar, UserPlus, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getAlunos } from "@/services/alunoService";
 import { getAulas } from "@/services/aulaService";
@@ -74,15 +74,15 @@ export default function Index() {
       <h1 className="text-3xl font-bold mb-8">Sistema de Gestão de Aulas</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Link to="/mensalidades">
+        <Link to="/alunos">
           <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CalendarCheck className="h-5 w-5" />
-                Mensalidades
+                <UserPlus className="h-5 w-5" />
+                Cadastro de Alunos
               </CardTitle>
               <CardDescription>
-                Gerencie as mensalidades dos alunos
+                Gerencie os cadastros de alunos
               </CardDescription>
             </CardHeader>
           </Card>
@@ -102,23 +102,33 @@ export default function Index() {
           </Card>
         </Link>
 
-        <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <List className="h-5 w-5" />
-              Relatórios
-            </CardTitle>
-            <CardDescription>
-              Visualize relatórios e estatísticas
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <Link to="/mensalidades">
+          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarCheck className="h-5 w-5" />
+                Mensalidades
+              </CardTitle>
+              <CardDescription>
+                Gerencie as mensalidades dos alunos
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle>Alunos</CardTitle>
+            <CardTitle className="flex justify-between items-center">
+              <span>Alunos</span>
+              <Link to="/alunos">
+                <Button size="sm" variant="outline">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Cadastrar Novo
+                </Button>
+              </Link>
+            </CardTitle>
             <CardDescription>
               Gerenciamento de alunos cadastrados no sistema
             </CardDescription>
@@ -134,7 +144,15 @@ export default function Index() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Aulas</CardTitle>
+            <CardTitle className="flex justify-between items-center">
+              <span>Aulas</span>
+              <Link to="/aulas">
+                <Button size="sm" variant="outline">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Cadastrar Nova
+                </Button>
+              </Link>
+            </CardTitle>
             <CardDescription>
               Gerenciamento de aulas disponíveis no sistema
             </CardDescription>

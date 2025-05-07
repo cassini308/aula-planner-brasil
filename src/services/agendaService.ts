@@ -72,7 +72,7 @@ export const adicionarAgendamento = async (dados: AgendamentoHorarioFormData): P
     throw error;
   }
   
-  return data;
+  return data as AgendamentoHorario;
 };
 
 // Remover um agendamento
