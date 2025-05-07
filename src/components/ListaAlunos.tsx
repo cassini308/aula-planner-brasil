@@ -10,18 +10,25 @@ import { formatarCpf, formatarTelefone, formatarData } from '@/services/alunoSer
 import MatricularAluno from './MatricularAluno';
 
 interface ListaAlunosProps {
-  alunos: Aluno[];
-  onEditar: (aluno: Aluno) => void;
-  onExcluir: (id: string) => void;
+  alunos?: Aluno[];
+  onEditar?: (aluno: Aluno) => void;
+  onExcluir?: (id: string) => void;
   onMatricular?: (aluno: Aluno) => void;
 }
 
-const ListaAlunos: React.FC<ListaAlunosProps> = ({ alunos, onEditar, onExcluir, onMatricular }) => {
+const ListaAlunos: React.FC<ListaAlunosProps> = ({ 
+  alunos = [], 
+  onEditar = () => {}, 
+  onExcluir = () => {}, 
+  onMatricular = () => {} 
+}) => {
   const [matriculaAtualizada, setMatriculaAtualizada] = useState<boolean>(false);
 
   const handleMatriculaSuccess = () => {
     setMatriculaAtualizada(!matriculaAtualizada);
-    if (onMatricular) onMatricular(alunos[0]);
+    if (alunos.length > 0) {
+      onMatricular(alunos[0]);
+    }
   };
 
   return (

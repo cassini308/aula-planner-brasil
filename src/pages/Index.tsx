@@ -5,8 +5,70 @@ import ListaAlunos from "@/components/ListaAlunos";
 import ListaAulas from "@/components/ListaAulas";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { CalendarCheck, List, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getAlunos } from "@/services/alunoService";
+import { getAulas } from "@/services/aulaService";
+import { Aluno } from "@/types/aula";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Index() {
+  const { toast } = useToast();
+  const [alunos, setAlunos] = useState([]);
+  const [aulas, setAulas] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carrega dados ao iniciar a página
+  useEffect(() => {
+    const carregarDados = async () => {
+      setLoading(true);
+      try {
+        const [dadosAlunos, dadosAulas] = await Promise.all([
+          getAlunos(),
+          getAulas()
+        ]);
+        setAlunos(dadosAlunos);
+        setAulas(dadosAulas);
+      } catch (error) {
+        console.error("Erro ao carregar dados iniciais:", error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados. Tente novamente mais tarde.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
+  }, [toast]);
+
+  // Funções placeholder que redirecionam para as páginas específicas
+  const handleEditarAluno = (aluno) => {
+    window.location.href = "/alunos"; // Redireciona para a página de alunos
+  };
+
+  const handleExcluirAluno = (id) => {
+    toast({
+      title: "Funcionalidade indisponível",
+      description: "Acesse a página de alunos para gerenciar os registros.",
+    });
+  };
+
+  const handleEditarAula = (aula) => {
+    toast({
+      title: "Funcionalidade indisponível",
+      description: "Acesse a página de aulas para gerenciar os registros.",
+    });
+  };
+
+  const handleExcluirAula = (id) => {
+    toast({
+      title: "Funcionalidade indisponível",
+      description: "Acesse a página de aulas para gerenciar os registros.",
+    });
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-8">Sistema de Gestão de Aulas</h1>
@@ -62,7 +124,11 @@ export default function Index() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ListaAlunos />
+            <ListaAlunos 
+              alunos={alunos} 
+              onEditar={handleEditarAluno} 
+              onExcluir={handleExcluirAluno}
+            />
           </CardContent>
         </Card>
 
@@ -74,7 +140,11 @@ export default function Index() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ListaAulas />
+            <ListaAulas 
+              aulas={aulas} 
+              onEditar={handleEditarAula} 
+              onExcluir={handleExcluirAula}
+            />
           </CardContent>
         </Card>
       </div>
