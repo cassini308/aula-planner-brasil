@@ -5,19 +5,21 @@ import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Ban } from 'lucide-react';
+import { BookOpen, Ban, User } from 'lucide-react';
 import { Aluno, Matricula } from '@/types/aula';
 import { getMatriculasByAlunoId, cancelarMatricula } from '@/services/matriculaService';
 import { formatarData, formatarMoeda } from '@/services/alunoService';
 import { useToast } from '@/components/ui/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Link } from 'react-router-dom';
 
 interface MatriculasAlunoProps {
   aluno: Aluno;
   onUpdate?: () => void;
+  showPainelLink?: boolean;
 }
 
-const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ aluno, onUpdate }) => {
+const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ aluno, onUpdate, showPainelLink = true }) => {
   const [matriculas, setMatriculas] = useState<Matricula[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [matriculaParaCancelar, setMatriculaParaCancelar] = useState<Matricula | null>(null);
@@ -84,16 +86,31 @@ const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ aluno, onUpdate }) =>
     <>
       <Card className="w-full mt-4">
         <CardHeader>
-          <CardTitle className="text-xl font-bold text-aula-blue flex items-center gap-2">
-            <BookOpen size={20} />
-            Matrículas do Aluno
-          </CardTitle>
-          <CardDescription>
-            {matriculas.length === 0 
-              ? "Este aluno não está matriculado em nenhuma aula." 
-              : `Total de ${matriculas.length} ${matriculas.length === 1 ? 'matrícula' : 'matrículas'}.`
-            }
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <BookOpen size={20} className="text-aula-blue" />
+              <div>
+                <CardTitle className="text-xl font-bold text-aula-blue">
+                  Matrículas do Aluno
+                </CardTitle>
+                <CardDescription>
+                  {matriculas.length === 0 
+                    ? "Este aluno não está matriculado em nenhuma aula." 
+                    : `Total de ${matriculas.length} ${matriculas.length === 1 ? 'matrícula' : 'matrículas'}.`
+                  }
+                </CardDescription>
+              </div>
+            </div>
+            
+            {showPainelLink && (
+              <Link to={`/aluno/${aluno.id}`}>
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <User size={16} />
+                  <span>Ver Painel do Aluno</span>
+                </Button>
+              </Link>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (

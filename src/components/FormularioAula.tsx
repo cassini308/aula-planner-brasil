@@ -1,203 +1,185 @@
 
-import React, { useEffect, useState } from 'react';
-import { Aula, AulaFormData, Periodicidade } from '@/types/aula';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Aula, AulaFormData, Periodicidade } from '@/types/aula';
 
-interface FormularioAulaProps {
-  onSalvar: (aula: AulaFormData) => void;
-  aulaParaEditar?: Aula | null;
-  onCancelarEdicao?: () => void;
+export interface FormularioAulaProps {
+  onSalvar: (formData: AulaFormData) => Promise<void>;
+  aulaParaEditar?: Aula;
+  onCancelar?: () => void; // Tornando opcional
 }
+
+// Schema de validação com Zod
+const aulaFormSchema = z.object({
+  nome: z.string().min(3, { message: 'O nome deve ter pelo menos 3 caracteres' }),
+  valor: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    message: 'O valor deve ser um número positivo',
+  }),
+  periodicidade: z.enum(['mensal', 'trimestral', 'semestral', 'anual']),
+  vezes_semanais: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 1 && Number(val) <= 7, {
+    message: 'As vezes semanais devem ser entre 1 e 7',
+  }),
+});
 
 const FormularioAula: React.FC<FormularioAulaProps> = ({ 
   onSalvar, 
-  aulaParaEditar, 
-  onCancelarEdicao 
+  aulaParaEditar,
+  onCancelar = () => {} // Valor padrão
 }) => {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState<AulaFormData>({
-    nome: '',
-    valor: 0,
-    periodicidade: 'mensal',
-    vezes_semanais: 1
+  // Inicializar o formulário com react-hook-form e zod
+  const form = useForm<z.infer<typeof aulaFormSchema>>({
+    resolver: zodResolver(aulaFormSchema),
+    defaultValues: {
+      nome: '',
+      valor: '',
+      periodicidade: 'mensal',
+      vezes_semanais: '1',
+    },
   });
 
+  // Preencher o formulário se houver uma aula para editar
   useEffect(() => {
     if (aulaParaEditar) {
-      setFormData({
+      form.reset({
         nome: aulaParaEditar.nome,
-        valor: aulaParaEditar.valor,
+        valor: aulaParaEditar.valor.toString(),
         periodicidade: aulaParaEditar.periodicidade,
-        vezes_semanais: aulaParaEditar.vezes_semanais
+        vezes_semanais: aulaParaEditar.vezes_semanais.toString(),
       });
     }
-  }, [aulaParaEditar]);
+  }, [aulaParaEditar, form]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.nome.trim()) {
-      toast({
-        title: "Erro no formulário",
-        description: "Nome da aula é obrigatório",
-        variant: "destructive"
-      });
-      return;
-    }
+  // Função para lidar com o envio do formulário
+  const onSubmit = async (data: z.infer<typeof aulaFormSchema>) => {
+    const aulaData: AulaFormData = {
+      nome: data.nome,
+      valor: Number(data.valor),
+      periodicidade: data.periodicidade as Periodicidade,
+      vezes_semanais: Number(data.vezes_semanais),
+    };
 
-    if (formData.valor <= 0) {
-      toast({
-        title: "Erro no formulário",
-        description: "Valor deve ser maior que zero",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    onSalvar(formData);
-    
-    if (!aulaParaEditar) {
-      // Limpar formulário após adicionar (não após editar)
-      setFormData({
-        nome: '',
-        valor: 0,
-        periodicidade: 'mensal',
-        vezes_semanais: 1
-      });
-    }
-    
-    toast({
-      title: aulaParaEditar ? "Aula atualizada" : "Aula adicionada",
-      description: `${formData.nome} foi ${aulaParaEditar ? 'atualizada' : 'adicionada'} com sucesso!`,
-    });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    
-    if (name === 'valor') {
-      setFormData({
-        ...formData,
-        [name]: parseFloat(value) || 0
-      });
-    } else if (name === 'vezes_semanais') {
-      setFormData({
-        ...formData,
-        [name]: parseInt(value) || 1
-      });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
-  };
-
-  const handlePeriodicidadeChange = (value: string) => {
-    setFormData({
-      ...formData,
-      periodicidade: value as Periodicidade
-    });
+    await onSalvar(aulaData);
+    form.reset();
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-aula-blue">
-          {aulaParaEditar ? 'Editar Aula' : 'Cadastrar Nova Aula'}
-        </CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="grid w-full items-center gap-3">
-            <Label htmlFor="nome" className="text-base">Nome da Aula</Label>
-            <Input 
-              id="nome"
-              name="nome"
-              type="text"
-              placeholder="Ex: Matemática, Inglês, Violão..."
-              value={formData.nome}
-              onChange={handleChange}
-              className="w-full"
-              required
-            />
-          </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="nome"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome da Aula</FormLabel>
+              <FormControl>
+                <Input placeholder="Ex: Ballet Infantil" {...field} />
+              </FormControl>
+              <FormDescription>
+                Informe o nome completo da aula.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="grid w-full items-center gap-3">
-            <Label htmlFor="valor" className="text-base">Valor (R$)</Label>
-            <Input
-              id="valor" 
-              name="valor"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0,00"
-              value={formData.valor}
-              onChange={handleChange}
-              className="w-full"
-              required
-            />
-          </div>
+        <FormField
+          control={form.control}
+          name="valor"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Valor (R$)</FormLabel>
+              <FormControl>
+                <Input type="text" placeholder="Ex: 150.00" {...field} />
+              </FormControl>
+              <FormDescription>
+                Informe o valor da aula.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="grid w-full items-center gap-3">
-            <Label htmlFor="periodicidade" className="text-base">Periodicidade de Pagamento</Label>
-            <Select 
-              value={formData.periodicidade} 
-              onValueChange={handlePeriodicidadeChange}
-            >
-              <SelectTrigger id="periodicidade">
-                <SelectValue placeholder="Selecione a periodicidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="mensal">Mensal</SelectItem>
-                <SelectItem value="trimestral">Trimestral</SelectItem>
-                <SelectItem value="semestral">Semestral</SelectItem>
-                <SelectItem value="anual">Anual</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <FormField
+          control={form.control}
+          name="periodicidade"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Periodicidade</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a periodicidade" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Define a periodicidade de cobrança.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="grid w-full items-center gap-3">
-            <Label htmlFor="vezes_semanais" className="text-base">Aulas por Semana</Label>
-            <Input 
-              id="vezes_semanais"
-              name="vezes_semanais"
-              type="number"
-              min="1"
-              max="7"
-              value={formData.vezes_semanais}
-              onChange={handleChange}
-              className="w-full"
-              required
-            />
-          </div>
-        </CardContent>
-        
-        <CardFooter className="flex justify-between">
-          {aulaParaEditar && onCancelarEdicao && (
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={onCancelarEdicao}
-            >
+        <FormField
+          control={form.control}
+          name="vezes_semanais"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Vezes por Semana</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a frequência" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7].map(num => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num} {num === 1 ? 'vez' : 'vezes'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Quantas vezes por semana a aula é ministrada.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2">
+          {onCancelar && (
+            <Button type="button" variant="outline" onClick={onCancelar}>
               Cancelar
             </Button>
           )}
-          <Button 
-            type="submit" 
-            className={`${aulaParaEditar ? 'bg-aula-green' : 'bg-aula-blue'} hover:opacity-90`}
-            style={{marginLeft: aulaParaEditar ? '0' : 'auto'}}
-          >
-            {aulaParaEditar ? 'Atualizar Aula' : 'Cadastrar Aula'}
+          <Button type="submit">
+            {aulaParaEditar ? 'Atualizar' : 'Cadastrar'} Aula
           </Button>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </Form>
   );
 };
 

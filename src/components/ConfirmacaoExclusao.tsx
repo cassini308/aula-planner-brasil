@@ -1,44 +1,39 @@
 
 import React from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
-interface ConfirmacaoExclusaoProps {
+export interface ConfirmacaoExclusaoProps {
   aberto: boolean;
-  aulaName: string;
-  onConfirmar: () => void;
+  titulo?: string; // Adicionando como opcional
+  mensagem: string;
+  onConfirmar: () => Promise<void>;
   onCancelar: () => void;
 }
 
-const ConfirmacaoExclusao: React.FC<ConfirmacaoExclusaoProps> = ({
-  aberto,
-  aulaName,
-  onConfirmar,
-  onCancelar
-}) => {
+export const ConfirmacaoExclusao = ({ 
+  aberto, 
+  titulo = "Confirmar Exclusão", // Valor padrão 
+  mensagem, 
+  onConfirmar, 
+  onCancelar 
+}: ConfirmacaoExclusaoProps) => {
   return (
-    <AlertDialog open={aberto} onOpenChange={onCancelar}>
+    <AlertDialog open={aberto} onOpenChange={(open) => !open && onCancelar()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+          <AlertDialogTitle>{titulo}</AlertDialogTitle>
           <AlertDialogDescription>
-            Você tem certeza que deseja excluir a aula <strong>"{aulaName}"</strong>? 
-            Esta ação não pode ser desfeita.
+            {mensagem}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel onClick={onCancelar}>Cancelar</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onConfirmar}
-            className="bg-red-500 hover:bg-red-600"
+            onClick={async () => {
+              await onConfirmar();
+            }}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             Excluir
           </AlertDialogAction>
@@ -47,5 +42,3 @@ const ConfirmacaoExclusao: React.FC<ConfirmacaoExclusaoProps> = ({
     </AlertDialog>
   );
 };
-
-export default ConfirmacaoExclusao;

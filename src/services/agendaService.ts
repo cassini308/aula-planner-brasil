@@ -1,6 +1,17 @@
 
+import { AgendamentoFormData, AgendamentoHorario } from "../types/agenda";
 import { supabase } from "@/integrations/supabase/client";
-import { AgendamentoHorario, AgendamentoHorarioFormData } from "../types/agenda";
+
+// Formatar dia da semana como texto
+export const getDiaDaSemanaTexto = (dia: number): string => {
+  const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  return diasSemana[dia];
+};
+
+// Formatar hora como texto (ex: "14:00")
+export const formatarHorario = (hora: number): string => {
+  return `${hora.toString().padStart(2, '0')}:00`;
+};
 
 // Obter todos os agendamentos
 export const getAgendamentos = async (): Promise<AgendamentoHorario[]> => {
@@ -10,73 +21,82 @@ export const getAgendamentos = async (): Promise<AgendamentoHorario[]> => {
       *,
       aluno:aluno_id(*),
       aula:aula_id(*)
-    `)
-    .order('dia_semana')
-    .order('hora_inicio');
+    `);
   
   if (error) {
-    console.error("Erro ao obter agendamentos:", error);
-    throw error;
+    console.error("Erro ao buscar agendamentos:", error);
+    return [];
   }
   
   return data.map((agendamento: any) => ({
     ...agendamento,
-    aluno: agendamento.aluno ? {
-      ...agendamento.aluno,
-      data_nascimento: new Date(agendamento.aluno.data_nascimento),
-      data_cadastro: new Date(agendamento.aluno.data_cadastro)
-    } : undefined,
-    aula: agendamento.aula ? {
-      ...agendamento.aula,
-      data_cadastro: new Date(agendamento.aula.data_cadastro),
-      valor: Number(agendamento.aula.valor)
-    } : undefined
+    dia_semana_texto: getDiaDaSemanaTexto(agendamento.dia_semana),
+    hora_texto: formatarHorario(agendamento.hora_inicio)
+  }));
+};
+
+// Obter agendamentos por aluno
+export const getAgendamentosByAlunoId = async (alunoId: string): Promise<AgendamentoHorario[]> => {
+  const { data, error } = await supabase
+    .from('agendamentos')
+    .select(`
+      *,
+      aluno:aluno_id(*),
+      aula:aula_id(*)
+    `)
+    .eq('aluno_id', alunoId);
+  
+  if (error) {
+    console.error("Erro ao buscar agendamentos do aluno:", error);
+    return [];
+  }
+  
+  return data.map((agendamento: any) => ({
+    ...agendamento,
+    dia_semana_texto: getDiaDaSemanaTexto(agendamento.dia_semana),
+    hora_texto: formatarHorario(agendamento.hora_inicio)
   }));
 };
 
 // Adicionar um novo agendamento
-export const adicionarAgendamento = async (dados: AgendamentoHorarioFormData): Promise<AgendamentoHorario> => {
-  console.log("Adicionando agendamento:", dados);
-  
-  // Verificar se já existe agendamento para este horário
-  const { data: agendamentoExistente, error: erroVerificacao } = await supabase
+export const adicionarAgendamento = async (agendamentoData: AgendamentoFormData): Promise<AgendamentoHorario | null> => {
+  // Verificar se já existe um agendamento para este horário e dia
+  const { data: existente } = await supabase
     .from('agendamentos')
     .select('id')
-    .eq('dia_semana', dados.dia_semana)
-    .eq('hora_inicio', dados.hora_inicio)
-    .eq('aluno_id', dados.aluno_id)
-    .maybeSingle();
+    .eq('dia_semana', agendamentoData.dia_semana)
+    .eq('hora_inicio', agendamentoData.hora_inicio)
+    .eq('aluno_id', agendamentoData.aluno_id);
   
-  if (erroVerificacao) {
-    console.error("Erro ao verificar agendamento existente:", erroVerificacao);
-    throw erroVerificacao;
-  }
-  
-  if (agendamentoExistente) {
-    throw new Error("Já existe um agendamento para este aluno neste horário");
+  if (existente && existente.length > 0) {
+    console.error("Já existe um agendamento para este aluno neste horário");
+    return null;
   }
   
   const { data, error } = await supabase
     .from('agendamentos')
-    .insert([{
-      aluno_id: dados.aluno_id,
-      aula_id: dados.aula_id,
-      dia_semana: dados.dia_semana,
-      hora_inicio: dados.hora_inicio
-    }])
-    .select()
+    .insert(agendamentoData)
+    .select(`
+      *,
+      aluno:aluno_id(*),
+      aula:aula_id(*)
+    `)
     .single();
   
   if (error) {
     console.error("Erro ao adicionar agendamento:", error);
-    throw error;
+    return null;
   }
   
-  return data as AgendamentoHorario;
+  return {
+    ...data,
+    dia_semana_texto: getDiaDaSemanaTexto(data.dia_semana),
+    hora_texto: formatarHorario(data.hora_inicio)
+  };
 };
 
 // Remover um agendamento
-export const removerAgendamento = async (id: string): Promise<void> => {
+export const removerAgendamento = async (id: string): Promise<boolean> => {
   const { error } = await supabase
     .from('agendamentos')
     .delete()
@@ -84,26 +104,8 @@ export const removerAgendamento = async (id: string): Promise<void> => {
   
   if (error) {
     console.error("Erro ao remover agendamento:", error);
-    throw error;
+    return false;
   }
-};
-
-// Função auxiliar para formatar o horário
-export const formatarHorario = (hora: number): string => {
-  return `${hora}:00`;
-};
-
-// Função para obter o texto do dia da semana
-export const getDiaDaSemanaTexto = (dia: number): string => {
-  const diasDaSemana = [
-    "Domingo",
-    "Segunda",
-    "Terça",
-    "Quarta",
-    "Quinta",
-    "Sexta",
-    "Sábado"
-  ];
   
-  return diasDaSemana[dia];
+  return true;
 };
