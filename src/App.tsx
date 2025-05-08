@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Mensalidades from "./pages/Mensalidades";
 import Agenda from "./pages/Agenda";
 import NotFound from "./pages/NotFound";
+import Alunos from "./pages/Alunos";
+import Aulas from "./pages/Aulas";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -19,6 +21,7 @@ const Navigation = () => (
       <div className="flex space-x-2">
         <Link to="/"><Button variant="ghost">Home</Button></Link>
         <Link to="/alunos"><Button variant="ghost">Alunos</Button></Link>
+        <Link to="/aulas"><Button variant="ghost">Aulas</Button></Link>
         <Link to="/agenda"><Button variant="ghost">Agenda</Button></Link>
         <Link to="/mensalidades"><Button variant="ghost">Mensalidades</Button></Link>
       </div>
@@ -35,6 +38,8 @@ const App = () => (
       <div className="py-4">
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/alunos" element={<Alunos />} />
+          <Route path="/aulas" element={<Aulas />} />
           <Route path="/mensalidades" element={<Mensalidades />} />
           <Route path="/agenda" element={<Agenda />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

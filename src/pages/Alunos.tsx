@@ -14,29 +14,46 @@ import {
 } from '@/services/alunoService';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { UserCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const Alunos = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [alunos, setAlunos] = useState<Aluno[]>([]);
+  const [alunosFiltrados, setAlunosFiltrados] = useState<Aluno[]>([]);
   const [alunoParaEditar, setAlunoParaEditar] = useState<any | null>(null);
   const [alunoParaExcluir, setAlunoParaExcluir] = useState<Aluno | null>(null);
   const [loading, setLoading] = useState(true);
   const [matriculasAtualizadas, setMatriculasAtualizadas] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Carregar alunos do banco de dados ao iniciar
   useEffect(() => {
     carregarAlunos();
   }, []);
 
+  // Filtrar alunos quando o termo de pesquisa mudar
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setAlunosFiltrados(alunos);
+    } else {
+      const termoBusca = searchTerm.toLowerCase();
+      const filtrados = alunos.filter(
+        aluno => 
+          aluno.nome.toLowerCase().includes(termoBusca) || 
+          (aluno.email && aluno.email.toLowerCase().includes(termoBusca)) ||
+          (aluno.cpf && aluno.cpf.includes(termoBusca))
+      );
+      setAlunosFiltrados(filtrados);
+    }
+  }, [searchTerm, alunos]);
+
   const carregarAlunos = async () => {
     setLoading(true);
     try {
       const alunosCarregados = await getAlunos();
       setAlunos(alunosCarregados);
+      setAlunosFiltrados(alunosCarregados);
     } catch (error) {
       console.error("Erro ao carregar alunos:", error);
       toast({
@@ -159,7 +176,7 @@ const Alunos = () => {
   };
 
   return (
-    <div>
+    <div className="container mx-auto px-4">
       <section className="mb-8">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">
@@ -192,9 +209,31 @@ const Alunos = () => {
       <Separator className="my-8" />
       
       <section>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800">Lista de Alunos</h2>
+            <p className="text-gray-600">
+              {loading ? "Carregando alunos..." : 
+                `${alunosFiltrados.length} ${alunosFiltrados.length === 1 ? 'aluno encontrado' : 'alunos encontrados'}`
+              }
+            </p>
+          </div>
+          
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <Input
+              type="search"
+              placeholder="Buscar alunos..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+        
         <div className="bg-white rounded-lg shadow-md">
           <ListaAlunos 
-            alunos={alunos}
+            alunos={alunosFiltrados}
             onEditar={handleEditar}
             onExcluir={handleExcluir}
             onMatricular={handleMatriculaAtualizada}
