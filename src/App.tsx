@@ -11,6 +11,8 @@ import Alunos from "./pages/Alunos";
 import Aulas from "./pages/Aulas";
 import AutoCadastro from "./pages/AutoCadastro";
 import PainelAluno from "./pages/PainelAluno";
+import PainelAlunoPrivado from "./pages/PainelAlunoPrivado";
+import LoginAluno from "./pages/LoginAluno";
 import Avisos from "./pages/Avisos";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -29,6 +31,7 @@ const Navigation = () => (
         <Link to="/mensalidades"><Button variant="ghost" size="sm" className="text-sm">Mensalidades</Button></Link>
         <Link to="/avisos"><Button variant="ghost" size="sm" className="text-sm">Avisos</Button></Link>
         <Link to="/auto-cadastro"><Button variant="ghost" size="sm" className="text-sm">Auto Cadastro</Button></Link>
+        <Link to="/login-aluno"><Button variant="ghost" size="sm" className="text-sm text-yellow-300">Área do Aluno</Button></Link>
       </div>
     </div>
   </nav>
@@ -50,6 +53,8 @@ const App = () => (
           <Route path="/avisos" element={<Avisos />} />
           <Route path="/auto-cadastro" element={<AutoCadastro />} />
           <Route path="/aluno/:id" element={<PainelAluno />} />
+          <Route path="/login-aluno" element={<LoginAluno />} />
+          <Route path="/painel-aluno" element={<PainelAlunoPrivado />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

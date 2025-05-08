@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,9 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { User, MessageSquare, CreditCard, Calendar, Clock, Bell, ArrowLeft, Lock } from 'lucide-react';
+import { User, MessageSquare, CreditCard, Calendar, Clock, Bell, LogOut } from 'lucide-react';
 import { Aluno } from '@/types/aula';
-import { getAlunoById } from '@/services/alunoService';
+import { verificarAutenticacao, logout } from '@/services/authService';
 import { getMensalidadesByAluno, formatarStatusMensalidade, getStatusMensalidadeClass } from '@/services/mensalidadeService';
 import { getMatriculasByAlunoId } from '@/services/matriculaService';
 import { getAgendamentosByAlunoId } from '@/services/agendaService';
@@ -18,53 +18,52 @@ import { formatarData, formatarMoeda } from '@/services/alunoService';
 import { getAvisosByAlunoId } from '@/services/avisoService';
 import { formatarTelefone, formatarCpf } from '@/services/alunoService';
 import MatriculasAluno from '@/components/MatriculasAluno';
-import CriarLoginAluno from '@/components/CriarLoginAluno';
 
-const PainelAluno = () => {
-  const { id } = useParams<{ id: string }>();
+const PainelAlunoPrivado = () => {
   const [aluno, setAluno] = useState<Aluno | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('dados');
   const [mensalidades, setMensalidades] = useState<any[]>([]);
   const [agendamentos, setAgendamentos] = useState<any[]>([]);
   const [avisos, setAvisos] = useState<any[]>([]);
-  const [mostrarCriarLogin, setMostrarCriarLogin] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!id) return;
-    
     const carregarDados = async () => {
       setLoading(true);
       try {
-        // Carregar dados do aluno
-        const dadosAluno = await getAlunoById(id);
-        if (!dadosAluno) {
+        // Verificar autenticação
+        const { autenticado, aluno, error } = await verificarAutenticacao();
+        
+        if (!autenticado || !aluno) {
           toast({
-            title: "Erro",
-            description: "Aluno não encontrado",
+            title: "Acesso negado",
+            description: "Você precisa estar logado para acessar esta página",
             variant: "destructive"
           });
+          navigate('/login-aluno');
           return;
         }
-        setAluno(dadosAluno);
+        
+        setAluno(aluno);
         
         // Carregar mensalidades
-        const dadosMensalidades = await getMensalidadesByAluno(id);
+        const dadosMensalidades = await getMensalidadesByAluno(aluno.id);
         setMensalidades(dadosMensalidades);
         
         // Carregar agendamentos
-        const dadosAgendamentos = await getAgendamentosByAlunoId(id);
+        const dadosAgendamentos = await getAgendamentosByAlunoId(aluno.id);
         setAgendamentos(dadosAgendamentos);
         
         // Carregar avisos
-        const dadosAvisos = await getAvisosByAlunoId(id);
+        const dadosAvisos = await getAvisosByAlunoId(aluno.id);
         setAvisos(dadosAvisos);
       } catch (error) {
         console.error("Erro ao carregar dados do aluno:", error);
         toast({
           title: "Erro",
-          description: "Falha ao carregar dados do aluno. Por favor, tente novamente.",
+          description: "Falha ao carregar seus dados. Por favor, tente novamente.",
           variant: "destructive"
         });
       } finally {
@@ -73,13 +72,24 @@ const PainelAluno = () => {
     };
     
     carregarDados();
-  }, [id, toast]);
+  }, [toast, navigate]);
+  
+  const handleLogout = async () => {
+    const { success } = await logout();
+    if (success) {
+      toast({
+        title: "Logout realizado",
+        description: "Você foi desconectado com sucesso"
+      });
+      navigate('/login-aluno');
+    }
+  };
   
   if (loading) {
     return (
       <div className="container mx-auto p-4">
         <div className="flex justify-center items-center h-64">
-          <p className="text-gray-500">Carregando dados do aluno...</p>
+          <p className="text-gray-500">Carregando seus dados...</p>
         </div>
       </div>
     );
@@ -89,9 +99,9 @@ const PainelAluno = () => {
     return (
       <div className="container mx-auto p-4">
         <div className="flex flex-col justify-center items-center h-64">
-          <p className="text-gray-500">Aluno não encontrado</p>
-          <Link to="/alunos">
-            <Button variant="link" className="mt-2">Voltar para lista de alunos</Button>
+          <p className="text-gray-500">Dados do aluno não encontrados</p>
+          <Link to="/login-aluno">
+            <Button variant="link" className="mt-2">Voltar para o login</Button>
           </Link>
         </div>
       </div>
@@ -100,13 +110,11 @@ const PainelAluno = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex items-center mb-6">
-        <Link to="/alunos">
-          <Button variant="ghost" size="sm" className="mr-2">
-            <ArrowLeft size={16} className="mr-1" /> Voltar
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold">Painel do Aluno</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Meu Painel de Aluno</h1>
+        <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+          <LogOut size={16} /> Sair
+        </Button>
       </div>
       
       <Card className="mb-6">
@@ -117,42 +125,13 @@ const PainelAluno = () => {
               {aluno.email} {aluno.telefone && `• ${formatarTelefone(aluno.telefone)}`}
             </CardDescription>
           </div>
-          <div className="flex space-x-2">
-            <Link to={`/alunos/editar/${aluno.id}`}>
-              <Button variant="outline" size="sm">Editar Dados</Button>
-            </Link>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={() => setMostrarCriarLogin(!mostrarCriarLogin)}
-            >
-              <Lock size={16} /> Acesso
-            </Button>
-          </div>
         </CardHeader>
-        {mostrarCriarLogin && (
-          <CardContent className="pt-6">
-            <CriarLoginAluno 
-              aluno={aluno} 
-              onSuccess={() => {
-                setMostrarCriarLogin(false);
-                // Recarregar os dados para obter o email atualizado
-                getAlunoById(aluno.id).then(dadosAluno => {
-                  if (dadosAluno) {
-                    setAluno(dadosAluno);
-                  }
-                });
-              }}
-            />
-          </CardContent>
-        )}
       </Card>
       
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="grid grid-cols-5 mb-4">
+        <TabsList className="grid grid-cols-4 mb-4">
           <TabsTrigger value="dados" className="flex items-center">
-            <User size={16} className="mr-2" /> Dados
+            <User size={16} className="mr-2" /> Meus Dados
           </TabsTrigger>
           <TabsTrigger value="matriculas" className="flex items-center">
             <MessageSquare size={16} className="mr-2" /> Matrículas
@@ -161,10 +140,7 @@ const PainelAluno = () => {
             <CreditCard size={16} className="mr-2" /> Mensalidades
           </TabsTrigger>
           <TabsTrigger value="agenda" className="flex items-center">
-            <Calendar size={16} className="mr-2" /> Agenda
-          </TabsTrigger>
-          <TabsTrigger value="avisos" className="flex items-center">
-            <Bell size={16} className="mr-2" /> Avisos
+            <Calendar size={16} className="mr-2" /> Minha Agenda
           </TabsTrigger>
         </TabsList>
         
@@ -172,7 +148,7 @@ const PainelAluno = () => {
           <Card>
             <CardHeader>
               <CardTitle>Dados Pessoais</CardTitle>
-              <CardDescription>Informações cadastrais do aluno</CardDescription>
+              <CardDescription>Suas informações cadastrais</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -233,13 +209,13 @@ const PainelAluno = () => {
         <TabsContent value="mensalidades">
           <Card>
             <CardHeader>
-              <CardTitle>Mensalidades</CardTitle>
+              <CardTitle>Minhas Mensalidades</CardTitle>
               <CardDescription>Histórico e status de pagamentos</CardDescription>
             </CardHeader>
             <CardContent>
               {mensalidades.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  Nenhuma mensalidade registrada para este aluno.
+                  Nenhuma mensalidade registrada.
                 </div>
               ) : (
                 <ScrollArea className="h-[400px]">
@@ -284,13 +260,13 @@ const PainelAluno = () => {
         <TabsContent value="agenda">
           <Card>
             <CardHeader>
-              <CardTitle>Agenda de Aulas</CardTitle>
-              <CardDescription>Horários das aulas agendadas</CardDescription>
+              <CardTitle>Minha Agenda de Aulas</CardTitle>
+              <CardDescription>Seus horários agendados</CardDescription>
             </CardHeader>
             <CardContent>
               {agendamentos.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  Nenhum horário agendado para este aluno.
+                  Nenhum horário agendado.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -318,41 +294,9 @@ const PainelAluno = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="avisos">
-          <Card>
-            <CardHeader>
-              <CardTitle>Avisos</CardTitle>
-              <CardDescription>Comunicados e informações importantes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {avisos.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  Nenhum aviso disponível no momento.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {avisos.map((aviso) => (
-                    <Card key={aviso.id} className="bg-amber-50 border-amber-200">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-bold text-lg text-amber-800">{aviso.titulo}</h3>
-                          <span className="text-xs text-amber-700">
-                            {formatarData(aviso.data_criacao)}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-amber-900">{aviso.conteudo}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-export default PainelAluno;
+export default PainelAlunoPrivado;

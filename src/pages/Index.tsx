@@ -1,137 +1,129 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, BookOpen, Calendar, CreditCard, UserPlus, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { User, BookOpen, Calendar, CreditCard, UserPlus, Clock, Bell } from 'lucide-react';
 
 const Index = () => {
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-slate-800">Sistema de Gestão de Aulas</h1>
-        <p className="text-xl text-slate-600 mt-2">Gerenciamento completo de alunos, aulas e mensalidades</p>
-      </div>
+      <section className="mb-12 text-center">
+        <h1 className="text-4xl font-bold mb-4">Sistema de Gestão de Aulas</h1>
+        <p className="text-xl text-gray-600 mb-8">
+          Gerencie alunos, aulas, agendamentos e mensalidades em um único lugar.
+        </p>
+        
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link to="/login-aluno">
+            <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600">
+              Área do Aluno
+            </Button>
+          </Link>
+          <Link to="/auto-cadastro">
+            <Button size="lg" variant="outline">
+              <UserPlus size={18} className="mr-2" /> Auto Cadastro
+            </Button>
+          </Link>
+        </div>
+      </section>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Card de Alunos */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <Users className="h-8 w-8 text-blue-600" />
-            </div>
-            <CardTitle>Alunos</CardTitle>
-            <CardDescription>Gerenciamento de cadastros de alunos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">Cadastre, edite e visualize todos os alunos do sistema.</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link to="/alunos">
-              <Button>Gerenciar Alunos</Button>
-            </Link>
-          </CardFooter>
-        </Card>
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <Link to="/alunos" className="block">
+          <Card className="transition-all hover:shadow-md hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User size={20} /> Alunos
+              </CardTitle>
+              <CardDescription>Gerenciamento de alunos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Cadastre, edite e gerencie informações de alunos, incluindo dados pessoais e matrículas.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost" className="w-full">Acessar</Button>
+            </CardFooter>
+          </Card>
+        </Link>
+
+        <Link to="/aulas" className="block">
+          <Card className="transition-all hover:shadow-md hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen size={20} /> Aulas
+              </CardTitle>
+              <CardDescription>Gerenciamento de aulas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Configure modalidades de aulas, valores, periodicidade e outras informações importantes.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost" className="w-full">Acessar</Button>
+            </CardFooter>
+          </Card>
+        </Link>
         
-        {/* Card de Aulas */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <BookOpen className="h-8 w-8 text-purple-600" />
-            </div>
-            <CardTitle>Aulas</CardTitle>
-            <CardDescription>Configuração de tipos de aulas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">Configure os tipos de aulas, valores e periodicidades.</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link to="/aulas">
-              <Button>Gerenciar Aulas</Button>
-            </Link>
-          </CardFooter>
-        </Card>
+        <Link to="/agenda" className="block">
+          <Card className="transition-all hover:shadow-md hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar size={20} /> Agenda
+              </CardTitle>
+              <CardDescription>Gerenciamento de horários</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Organize e acompanhe os horários de aulas por dia da semana e por aluno.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost" className="w-full">Acessar</Button>
+            </CardFooter>
+          </Card>
+        </Link>
         
-        {/* Card de Agenda */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <Calendar className="h-8 w-8 text-green-600" />
-            </div>
-            <CardTitle>Agenda</CardTitle>
-            <CardDescription>Programação de horários</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">Visualize e gerencie os agendamentos de aulas semanais.</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link to="/agenda">
-              <Button>Ver Agenda</Button>
-            </Link>
-          </CardFooter>
-        </Card>
+        <Link to="/mensalidades" className="block">
+          <Card className="transition-all hover:shadow-md hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard size={20} /> Mensalidades
+              </CardTitle>
+              <CardDescription>Controle financeiro</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Acompanhe pagamentos, registre mensalidades e mantenha o controle financeiro.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost" className="w-full">Acessar</Button>
+            </CardFooter>
+          </Card>
+        </Link>
         
-        {/* Card de Mensalidades */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-amber-100 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <CreditCard className="h-8 w-8 text-amber-600" />
-            </div>
-            <CardTitle>Mensalidades</CardTitle>
-            <CardDescription>Controle financeiro</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">Gerencie as mensalidades e pagamentos dos alunos.</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link to="/mensalidades">
-              <Button>Controlar Mensalidades</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-        
-        {/* Card de Avisos */}
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-red-100 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <Bell className="h-8 w-8 text-red-600" />
-            </div>
-            <CardTitle>Avisos</CardTitle>
-            <CardDescription>Comunicados para alunos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">Publique avisos e comunicados para os alunos.</p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link to="/avisos">
-              <Button>Gerenciar Avisos</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-        
-        {/* Card de Auto Cadastro */}
-        <Card className="hover:shadow-lg transition-shadow border-blue-200">
-          <CardHeader className="text-center">
-            <div className="mx-auto p-4 bg-blue-50 rounded-full w-16 h-16 flex items-center justify-center mb-2">
-              <UserPlus className="h-8 w-8 text-blue-600" />
-            </div>
-            <CardTitle>Auto Cadastro</CardTitle>
-            <CardDescription>Formulário para novos alunos</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-center text-gray-600">
-              Acesse o formulário de auto cadastro para novos alunos.
-            </p>
-          </CardContent>
-          <CardFooter className="flex justify-center">
-            <Link to="/auto-cadastro">
-              <Button variant="outline" className="border-blue-300 hover:bg-blue-50">
-                Ir para o formulário
-              </Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
+        <Link to="/avisos" className="block">
+          <Card className="transition-all hover:shadow-md hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell size={20} /> Avisos
+              </CardTitle>
+              <CardDescription>Comunicados e notificações</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Crie e gerencie avisos para todos os alunos ou alunos específicos.
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="ghost" className="w-full">Acessar</Button>
+            </CardFooter>
+          </Card>
+        </Link>
+      </section>
     </div>
   );
 };
