@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, BookOpen, Calendar, CreditCard } from 'lucide-react';
+import { Users, BookOpen, Calendar, CreditCard, UserPlus } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -86,6 +86,30 @@ const Index = () => {
           <CardFooter className="flex justify-center">
             <Link to="/mensalidades">
               <Button>Controlar Mensalidades</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <div className="mt-12 max-w-md mx-auto">
+        <Card className="hover:shadow-lg transition-shadow border-blue-200">
+          <CardHeader className="text-center">
+            <div className="mx-auto p-4 bg-blue-50 rounded-full w-16 h-16 flex items-center justify-center mb-2">
+              <UserPlus className="h-8 w-8 text-blue-600" />
+            </div>
+            <CardTitle>Auto Cadastro de Alunos</CardTitle>
+            <CardDescription>Formulário para novos alunos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center text-gray-600">
+              É novo por aqui? Preencha seus dados no formulário de auto cadastro para iniciar sua matrícula.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Link to="/auto-cadastro">
+              <Button variant="outline" className="border-blue-300 hover:bg-blue-50">
+                Ir para o formulário
+              </Button>
             </Link>
           </CardFooter>
         </Card>

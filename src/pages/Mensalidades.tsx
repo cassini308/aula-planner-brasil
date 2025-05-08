@@ -6,7 +6,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -24,19 +26,34 @@ import {
   formatarStatusMensalidade
 } from '@/services/mensalidadeService';
 import { formatarData, formatarMoeda } from '@/services/alunoService';
-import { CreditCard, ChevronDown, CheckCircle2, AlertCircle } from 'lucide-react';
+import { getAlunos } from '@/services/alunoService';
+import { CreditCard, ChevronDown, CheckCircle2, AlertCircle, Search } from 'lucide-react';
 
 const Mensalidades: React.FC = () => {
   const [mensalidades, setMensalidades] = useState<Mensalidade[]>([]);
+  const [mensalidadesFiltradas, setMensalidadesFiltradas] = useState<Mensalidade[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [processando, setProcessando] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [alunoFilter, setAlunoFilter] = useState<string>('todos');
+  const [alunos, setAlunos] = useState<{id: string, nome: string}[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     carregarMensalidades();
+    carregarAlunos();
   }, []);
+
+  const carregarAlunos = async () => {
+    try {
+      const alunosData = await getAlunos();
+      setAlunos(alunosData.map(a => ({ id: a.id, nome: a.nome })));
+    } catch (err) {
+      console.error("Erro ao carregar alunos:", err);
+    }
+  };
 
   const carregarMensalidades = async () => {
     setLoading(true);
@@ -44,12 +61,39 @@ const Mensalidades: React.FC = () => {
     try {
       const mensalidadesCarregadas = await getMensalidades();
       setMensalidades(mensalidadesCarregadas);
+      setMensalidadesFiltradas(mensalidadesCarregadas);
     } catch (err) {
       console.error("Erro ao carregar mensalidades:", err);
       setError("Não foi possível carregar as mensalidades. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    filtrarMensalidades();
+  }, [searchTerm, alunoFilter, mensalidades]);
+
+  const filtrarMensalidades = () => {
+    let filtradas = [...mensalidades];
+    
+    // Filtrar por aluno
+    if (alunoFilter !== 'todos') {
+      filtradas = filtradas.filter(m => 
+        m.matricula?.aluno_id === alunoFilter
+      );
+    }
+    
+    // Filtrar por termo de busca
+    if (searchTerm.trim()) {
+      const termo = searchTerm.toLowerCase();
+      filtradas = filtradas.filter(m => 
+        m.matricula?.aluno?.nome?.toLowerCase().includes(termo) || 
+        m.matricula?.aula?.nome?.toLowerCase().includes(termo)
+      );
+    }
+    
+    setMensalidadesFiltradas(filtradas);
   };
 
   const handleRegistrarPagamento = async (mensalidadeId: string) => {
@@ -112,15 +156,42 @@ const Mensalidades: React.FC = () => {
             <CardHeader>
               <CardTitle>Mensalidades</CardTitle>
               <CardDescription>
-                {loading ? 'Carregando...' : `Total: ${mensalidades.length} mensalidades`}
+                {loading ? 'Carregando...' : `Total: ${mensalidadesFiltradas.length} mensalidades`}
               </CardDescription>
+              
+              <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 mt-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                  <Input
+                    type="search"
+                    placeholder="Buscar mensalidades..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div className="w-full md:w-64">
+                  <Select value={alunoFilter} onValueChange={setAlunoFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filtrar por aluno" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os alunos</SelectItem>
+                      {alunos.map(aluno => (
+                        <SelectItem key={aluno.id} value={aluno.id}>{aluno.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="text-center py-10 text-gray-500">
                   Carregando mensalidades...
                 </div>
-              ) : mensalidades.length === 0 ? (
+              ) : mensalidadesFiltradas.length === 0 ? (
                 <div className="text-center py-10 text-gray-500">
                   <p>Nenhuma mensalidade encontrada.</p>
                   <p>Matricule alunos para gerar mensalidades.</p>
@@ -140,7 +211,7 @@ const Mensalidades: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {mensalidades.map((mensalidade) => (
+                      {mensalidadesFiltradas.map((mensalidade) => (
                         <TableRow key={mensalidade.id}>
                           <TableCell className="font-medium">
                             {mensalidade.matricula?.aluno?.nome || "—"}
