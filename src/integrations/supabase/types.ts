@@ -128,6 +128,66 @@ export type Database = {
         }
         Relationships: []
       }
+      avisos: {
+        Row: {
+          conteudo: string
+          data_criacao: string
+          id: string
+          para_todos: boolean
+          publicado: boolean
+          titulo: string
+        }
+        Insert: {
+          conteudo: string
+          data_criacao?: string
+          id?: string
+          para_todos?: boolean
+          publicado?: boolean
+          titulo: string
+        }
+        Update: {
+          conteudo?: string
+          data_criacao?: string
+          id?: string
+          para_todos?: boolean
+          publicado?: boolean
+          titulo?: string
+        }
+        Relationships: []
+      }
+      avisos_alunos: {
+        Row: {
+          aluno_id: string
+          aviso_id: string
+          id: string
+        }
+        Insert: {
+          aluno_id: string
+          aviso_id: string
+          id?: string
+        }
+        Update: {
+          aluno_id?: string
+          aviso_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avisos_alunos_aluno_id_fkey"
+            columns: ["aluno_id"]
+            isOneToOne: false
+            referencedRelation: "alunos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avisos_alunos_aviso_id_fkey"
+            columns: ["aviso_id"]
+            isOneToOne: false
+            referencedRelation: "avisos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matriculas: {
         Row: {
           aluno_id: string

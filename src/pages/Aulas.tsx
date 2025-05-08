@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import FormularioAula from '@/components/FormularioAula';
 import ListaAulas from '@/components/ListaAulas';
-import ConfirmacaoExclusao from '@/components/ConfirmacaoExclusao';
+import { ConfirmacaoExclusao } from '@/components/ConfirmacaoExclusao';
 import { Aula, AulaFormData } from '@/types/aula';
 import { getAulas, adicionarAula, atualizarAula, excluirAula } from '@/services/aulaService';
 import { useToast } from '@/components/ui/use-toast';

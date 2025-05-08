@@ -14,7 +14,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { ChevronDown, ChevronUp, Search, Plus, Edit, Trash2, Bell, BellOff, ListFilter, Check, X } from 'lucide-react';
 import { formatarData } from '@/services/alunoService';
 import { getAlunos } from '@/services/alunoService';
-import { Aluno, Aviso, AvisoFormData, adicionarAviso, atualizarAviso, excluirAviso, getAvisos, alternarPublicacaoAviso } from '@/services/avisoService';
+import { Aluno } from '@/types/aula';
+import { Aviso, AvisoFormData, adicionarAviso, atualizarAviso, excluirAviso, getAvisos, alternarPublicacaoAviso } from '@/services/avisoService';
 import { ConfirmacaoExclusao } from '@/components/ConfirmacaoExclusao';
 
 const Avisos = () => {

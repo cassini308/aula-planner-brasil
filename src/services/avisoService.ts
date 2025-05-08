@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Aluno } from "@/types/aula";
 
 export interface Aviso {
   id: string;
@@ -38,28 +39,34 @@ export const getAvisos = async (): Promise<Aviso[]> => {
 
 // Obter aviso por ID
 export const getAvisoById = async (id: string): Promise<Aviso | null> => {
-  const { data, error } = await supabase
+  // Get the main aviso data
+  const { data: avisoData, error: avisoError } = await supabase
     .from('avisos')
-    .select(`
-      *,
-      avisos_alunos(aluno_id)
-    `)
+    .select('*')
     .eq('id', id)
     .single();
   
-  if (error) {
-    console.error("Erro ao obter aviso:", error);
+  if (avisoError) {
+    console.error("Erro ao obter aviso:", avisoError);
     return null;
   }
   
-  // Processar os IDs dos alunos relacionados
-  const alunosIds = data.avisos_alunos ? 
-    data.avisos_alunos.map((rel: any) => rel.aluno_id) : 
-    [];
+  // Get the related alunos IDs
+  const { data: alunosData, error: alunosError } = await supabase
+    .from('avisos_alunos')
+    .select('aluno_id')
+    .eq('aviso_id', id);
+  
+  if (alunosError) {
+    console.error("Erro ao obter relações aluno-aviso:", alunosError);
+  }
+  
+  // Process the student IDs
+  const alunosIds = alunosData ? alunosData.map((rel: any) => rel.aluno_id) : [];
   
   return {
-    ...data,
-    data_criacao: new Date(data.data_criacao),
+    ...avisoData,
+    data_criacao: new Date(avisoData.data_criacao),
     alunos_ids: alunosIds
   };
 };
@@ -79,26 +86,34 @@ export const getAvisosByAlunoId = async (alunoId: string): Promise<Aviso[]> => {
     return [];
   }
 
-  // Buscar avisos específicos para este aluno
-  const { data: avisosEspecificos, error: errorEspecificos } = await supabase
+  // Buscar avisos específicos para este aluno através da tabela de relacionamento
+  const { data: avisosRelacionamentos, error: errorRelacionamentos } = await supabase
     .from('avisos_alunos')
-    .select(`
-      aviso:aviso_id(*)
-    `)
+    .select('aviso_id')
     .eq('aluno_id', alunoId);
   
-  if (errorEspecificos) {
-    console.error("Erro ao obter avisos específicos:", errorEspecificos);
+  if (errorRelacionamentos) {
+    console.error("Erro ao obter relações aluno-aviso:", errorRelacionamentos);
     return [];
   }
-
-  // Processar avisos específicos
-  const avisosDoAluno = avisosEspecificos
-    .filter((item: any) => item.aviso && item.aviso.publicado)
-    .map((item: any) => ({
-      ...item.aviso,
-      data_criacao: new Date(item.aviso.data_criacao)
-    }));
+  
+  // Se houver avisos específicos, buscar seus detalhes
+  let avisosEspecificos: any[] = [];
+  if (avisosRelacionamentos && avisosRelacionamentos.length > 0) {
+    const avisosIds = avisosRelacionamentos.map(rel => rel.aviso_id);
+    
+    const { data: avisosData, error: avisosError } = await supabase
+      .from('avisos')
+      .select('*')
+      .in('id', avisosIds)
+      .eq('publicado', true);
+      
+    if (avisosError) {
+      console.error("Erro ao obter avisos específicos:", avisosError);
+    } else {
+      avisosEspecificos = avisosData || [];
+    }
+  }
   
   // Combinar os dois conjuntos de avisos
   const todosAvisos = [
@@ -106,12 +121,19 @@ export const getAvisosByAlunoId = async (alunoId: string): Promise<Aviso[]> => {
       ...aviso,
       data_criacao: new Date(aviso.data_criacao)
     })),
-    ...avisosDoAluno
+    ...avisosEspecificos.map((aviso: any) => ({
+      ...aviso,
+      data_criacao: new Date(aviso.data_criacao)
+    }))
   ];
   
   // Remover duplicatas se houver
-  const avisosUnicos = Array.from(new Set(todosAvisos.map(a => a.id)))
-    .map(id => todosAvisos.find(a => a.id === id));
+  const avisoIds = new Set();
+  const avisosUnicos = todosAvisos.filter(aviso => {
+    const duplicado = avisoIds.has(aviso.id);
+    avisoIds.add(aviso.id);
+    return !duplicado;
+  });
     
   // Ordenar por data de criação (mais recentes primeiro)
   return avisosUnicos.sort((a, b) => b.data_criacao.getTime() - a.data_criacao.getTime());

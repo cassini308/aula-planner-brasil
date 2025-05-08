@@ -9,9 +9,11 @@ export interface AgendamentoHorario {
   hora_inicio: number; // Hora do dia (0-23)
   aluno?: Aluno;
   aula?: Aula;
+  dia_semana_texto?: string; // Text representation of day
+  hora_texto?: string; // Text representation of time
 }
 
-export interface AgendamentoHorarioFormData {
+export interface AgendamentoFormData {
   aluno_id: string;
   aula_id: string;
   dia_semana: number;
