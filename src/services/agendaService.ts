@@ -205,3 +205,6 @@ export const getAgendamentosByDiaSemana = async (diaSemana: number): Promise<Age
 
 // Alias para compatibilidade com componentes existentes
 export const getAgendamentos = getAllAgendamentos;
+
+// Adicionar o alias para o método que estava faltando
+export const adicionarAgendamento = criarAgendamento;
