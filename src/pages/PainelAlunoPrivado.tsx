@@ -120,9 +120,9 @@ const PainelAlunoPrivado = () => {
       <Card className="mb-6">
         <CardHeader className="bg-blue-50 flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-xl">{aluno.nome}</CardTitle>
+            <CardTitle className="text-xl">{aluno?.nome}</CardTitle>
             <CardDescription>
-              {aluno.email} {aluno.telefone && `• ${formatarTelefone(aluno.telefone)}`}
+              {aluno?.email} {aluno?.telefone && `• ${formatarTelefone(aluno.telefone)}`}
             </CardDescription>
           </div>
         </CardHeader>
@@ -203,7 +203,7 @@ const PainelAlunoPrivado = () => {
         </TabsContent>
         
         <TabsContent value="matriculas">
-          <MatriculasAluno aluno={aluno} />
+          {aluno && <MatriculasAluno aluno={aluno} showPainelLink={false} showCancelar={false} />}
         </TabsContent>
         
         <TabsContent value="mensalidades">

@@ -17,9 +17,15 @@ interface MatriculasAlunoProps {
   aluno: Aluno;
   onUpdate?: () => void;
   showPainelLink?: boolean;
+  showCancelar?: boolean;
 }
 
-const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ aluno, onUpdate, showPainelLink = true }) => {
+const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ 
+  aluno, 
+  onUpdate, 
+  showPainelLink = true, 
+  showCancelar = true 
+}) => {
   const [matriculas, setMatriculas] = useState<Matricula[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [matriculaParaCancelar, setMatriculaParaCancelar] = useState<Matricula | null>(null);
@@ -132,7 +138,7 @@ const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ aluno, onUpdate, show
                     <TableHead>Periodicidade</TableHead>
                     <TableHead>Data de Matrícula</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
+                    {showCancelar && <TableHead className="text-right">Ações</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -147,19 +153,21 @@ const MatriculasAluno: React.FC<MatriculasAlunoProps> = ({ aluno, onUpdate, show
                           {matricula.ativa ? "Ativa" : "Cancelada"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {matricula.ativa && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setMatriculaParaCancelar(matricula)}
-                            className="h-8 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 flex gap-1 items-center"
-                          >
-                            <Ban className="h-4 w-4" />
-                            <span>Cancelar</span>
-                          </Button>
-                        )}
-                      </TableCell>
+                      {showCancelar && (
+                        <TableCell className="text-right">
+                          {matricula.ativa && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setMatriculaParaCancelar(matricula)}
+                              className="h-8 p-2 text-red-500 hover:text-red-600 hover:bg-red-50 flex gap-1 items-center"
+                            >
+                              <Ban className="h-4 w-4" />
+                              <span>Cancelar</span>
+                            </Button>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
