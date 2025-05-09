@@ -13,6 +13,8 @@ import AutoCadastro from "./pages/AutoCadastro";
 import PainelAluno from "./pages/PainelAluno";
 import PainelAlunoPrivado from "./pages/PainelAlunoPrivado";
 import LoginAluno from "./pages/LoginAluno";
+import LoginAdmin from "./pages/LoginAdmin";
+import PainelAdmin from "./pages/PainelAdmin";
 import Avisos from "./pages/Avisos";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -32,6 +34,7 @@ const Navigation = () => (
         <Link to="/avisos"><Button variant="ghost" size="sm" className="text-sm">Avisos</Button></Link>
         <Link to="/auto-cadastro"><Button variant="ghost" size="sm" className="text-sm">Auto Cadastro</Button></Link>
         <Link to="/login-aluno"><Button variant="ghost" size="sm" className="text-sm text-yellow-300">Área do Aluno</Button></Link>
+        <Link to="/login-admin"><Button variant="ghost" size="sm" className="text-sm text-green-300">Admin</Button></Link>
       </div>
     </div>
   </nav>
@@ -55,6 +58,8 @@ const App = () => (
           <Route path="/aluno/:id" element={<PainelAluno />} />
           <Route path="/login-aluno" element={<LoginAluno />} />
           <Route path="/painel-aluno" element={<PainelAlunoPrivado />} />
+          <Route path="/login-admin" element={<LoginAdmin />} />
+          <Route path="/admin" element={<PainelAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

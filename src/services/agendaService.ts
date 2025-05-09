@@ -8,8 +8,32 @@ const diaSemanaTexto = [
   'Quinta-feira', 'Sexta-feira', 'Sábado'
 ];
 
-const formatarHora = (hora: number): string => {
+// Add the missing functions that are being imported by other components
+export const getDiaDaSemanaTexto = (diaSemana: number): string => {
+  return diaSemanaTexto[diaSemana];
+};
+
+export const formatarHorario = (hora: number): string => {
   return `${hora}:00`;
+};
+
+export const formatarHora = (hora: number): string => {
+  return `${hora}:00`;
+};
+
+// Rename excluirAgendamento to removerAgendamento to match the import
+export const removerAgendamento = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('agendamentos')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error("Erro ao remover agendamento:", error);
+    return false;
+  }
+  
+  return true;
 };
 
 // Obter todos os agendamentos
@@ -122,19 +146,4 @@ export const adicionarAgendamento = async (agendamento: AgendamentoFormData): Pr
       data_cadastro: new Date(data.aluno.data_cadastro)
     } : undefined
   };
-};
-
-// Excluir um agendamento
-export const excluirAgendamento = async (id: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('agendamentos')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error("Erro ao excluir agendamento:", error);
-    return false;
-  }
-  
-  return true;
 };

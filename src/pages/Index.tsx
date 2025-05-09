@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, BookOpen, Calendar, CreditCard, UserPlus, Clock, Bell } from 'lucide-react';
+import { User, BookOpen, Calendar, CreditCard, UserPlus, Lock, Bell } from 'lucide-react';
 
 const Index = () => {
   return (
@@ -18,6 +18,11 @@ const Index = () => {
           <Link to="/login-aluno">
             <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600">
               Área do Aluno
+            </Button>
+          </Link>
+          <Link to="/login-admin">
+            <Button size="lg" className="bg-green-500 hover:bg-green-600">
+              <Lock size={18} className="mr-2" /> Área do Administrador
             </Button>
           </Link>
           <Link to="/auto-cadastro">
