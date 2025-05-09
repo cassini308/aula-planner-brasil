@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Mensalidade, StatusMensalidade, Matricula } from "../types/aula";
 import { calcularProximoVencimentoAposPagamento } from "./matriculaService";
@@ -224,6 +223,72 @@ export const atualizarStatusMensalidade = async (
     valor: Number(data.valor),
     status: data.status as StatusMensalidade
   } : null;
+};
+
+// Atualizar valor de uma mensalidade
+export const atualizarValorMensalidade = async (
+  mensalidadeId: string,
+  novoValor: number
+): Promise<Mensalidade | null> => {
+  try {
+    if (!novoValor || novoValor <= 0) {
+      throw new Error("Valor inválido para mensalidade");
+    }
+    
+    const { data, error } = await supabase
+      .from('mensalidades')
+      .update({ valor: novoValor })
+      .eq('id', mensalidadeId)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Erro ao atualizar valor da mensalidade:", error);
+      return null;
+    }
+    
+    return data ? {
+      ...data,
+      data_vencimento: new Date(data.data_vencimento),
+      data_pagamento: data.data_pagamento ? new Date(data.data_pagamento) : null,
+      data_criacao: new Date(data.data_criacao),
+      valor: Number(data.valor),
+      status: data.status as StatusMensalidade
+    } : null;
+  } catch (error) {
+    console.error("Erro ao atualizar valor da mensalidade:", error);
+    return null;
+  }
+};
+
+// Cancelar uma mensalidade
+export const cancelarMensalidade = async (
+  mensalidadeId: string
+): Promise<Mensalidade | null> => {
+  try {
+    // Verifica se a mensalidade já está paga
+    const { data: mensalidadeAtual, error: getMensalidadeError } = await supabase
+      .from('mensalidades')
+      .select('status')
+      .eq('id', mensalidadeId)
+      .single();
+    
+    if (getMensalidadeError || !mensalidadeAtual) {
+      console.error("Erro ao obter mensalidade:", getMensalidadeError);
+      return null;
+    }
+    
+    if (mensalidadeAtual.status === 'pago') {
+      console.error("Não é possível cancelar uma mensalidade já paga");
+      return null;
+    }
+    
+    // Atualiza o status para cancelado
+    return await atualizarStatusMensalidade(mensalidadeId, 'cancelado');
+  } catch (error) {
+    console.error("Erro ao cancelar mensalidade:", error);
+    return null;
+  }
 };
 
 // Formatação e utilidades

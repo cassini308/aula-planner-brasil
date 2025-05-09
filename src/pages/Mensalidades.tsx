@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
@@ -16,18 +15,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { Mensalidade } from '@/types/aula';
 import { 
   getMensalidades, 
   registrarPagamento, 
+  cancelarMensalidade,
+  atualizarValorMensalidade,
   getStatusMensalidadeClass,
   formatarStatusMensalidade
 } from '@/services/mensalidadeService';
 import { formatarData, formatarMoeda } from '@/services/alunoService';
 import { getAlunos } from '@/services/alunoService';
-import { CreditCard, ChevronDown, CheckCircle2, AlertCircle, Search } from 'lucide-react';
+import { CreditCard, ChevronDown, CheckCircle2, AlertCircle, Search, Edit2, XCircle, MoreVertical } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { ConfirmacaoExclusao } from '@/components/ConfirmacaoExclusao';
 
 const Mensalidades: React.FC = () => {
   const [mensalidades, setMensalidades] = useState<Mensalidade[]>([]);
@@ -40,6 +44,14 @@ const Mensalidades: React.FC = () => {
   const [alunoFilter, setAlunoFilter] = useState<string>('todos');
   const [alunos, setAlunos] = useState<{id: string, nome: string}[]>([]);
   const { toast } = useToast();
+  
+  // Estados para o modal de edição de valor
+  const [editarModalAberto, setEditarModalAberto] = useState(false);
+  const [mensalidadeSelecionada, setMensalidadeSelecionada] = useState<Mensalidade | null>(null);
+  const [novoValor, setNovoValor] = useState<string>('');
+  
+  // Estado para o modal de confirmação de cancelamento
+  const [cancelarModalAberto, setCancelarModalAberto] = useState(false);
 
   useEffect(() => {
     carregarMensalidades();
@@ -121,6 +133,100 @@ const Mensalidades: React.FC = () => {
       setError("Ocorreu um erro ao processar o pagamento. Tente novamente.");
     } finally {
       setProcessando(null);
+    }
+  };
+
+  // Funções para editar o valor da mensalidade
+  const abrirModalEditar = (mensalidade: Mensalidade) => {
+    setMensalidadeSelecionada(mensalidade);
+    setNovoValor(mensalidade.valor.toString());
+    setEditarModalAberto(true);
+  };
+  
+  const handleEditarValor = async () => {
+    if (!mensalidadeSelecionada) return;
+    
+    const valor = parseFloat(novoValor.replace(',', '.'));
+    if (isNaN(valor) || valor <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "Por favor, informe um valor válido maior que zero.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setProcessando(mensalidadeSelecionada.id);
+    
+    try {
+      const mensalidadeAtualizada = await atualizarValorMensalidade(
+        mensalidadeSelecionada.id,
+        valor
+      );
+      
+      if (mensalidadeAtualizada) {
+        await carregarMensalidades();
+        toast({
+          title: "Valor atualizado",
+          description: `Valor da mensalidade atualizado para ${formatarMoeda(valor)}.`,
+        });
+        setEditarModalAberto(false);
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível atualizar o valor da mensalidade.",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar valor:", err);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao atualizar o valor da mensalidade.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessando(null);
+    }
+  };
+  
+  // Funções para cancelar mensalidade
+  const abrirModalCancelar = (mensalidade: Mensalidade) => {
+    setMensalidadeSelecionada(mensalidade);
+    setCancelarModalAberto(true);
+  };
+  
+  const handleCancelarMensalidade = async () => {
+    if (!mensalidadeSelecionada) return;
+    
+    setProcessando(mensalidadeSelecionada.id);
+    
+    try {
+      const mensalidadeCancelada = await cancelarMensalidade(mensalidadeSelecionada.id);
+      
+      if (mensalidadeCancelada) {
+        await carregarMensalidades();
+        toast({
+          title: "Mensalidade cancelada",
+          description: "A mensalidade foi cancelada com sucesso.",
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Não foi possível cancelar a mensalidade. Se já estiver paga, não pode ser cancelada.",
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao cancelar mensalidade:", err);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao cancelar a mensalidade.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessando(null);
+      setCancelarModalAberto(false);
     }
   };
 
@@ -237,15 +343,38 @@ const Mensalidades: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             {mensalidade.status === 'pendente' && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleRegistrarPagamento(mensalidade.id)}
-                                disabled={!!processando}
-                                className="bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800"
-                              >
-                                {processando === mensalidade.id ? "Processando..." : "Registrar Pagamento"}
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRegistrarPagamento(mensalidade.id)}
+                                  disabled={!!processando}
+                                  className="bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800"
+                                >
+                                  {processando === mensalidade.id ? "Processando..." : "Registrar Pagamento"}
+                                </Button>
+                                
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => abrirModalEditar(mensalidade)}>
+                                      <Edit2 className="mr-2 h-4 w-4" />
+                                      Editar Valor
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => abrirModalCancelar(mensalidade)}
+                                      className="text-red-600 focus:text-red-600"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Cancelar Mensalidade
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             )}
                             
                             {mensalidade.status === 'pago' && (
@@ -253,15 +382,38 @@ const Mensalidades: React.FC = () => {
                             )}
                             
                             {mensalidade.status === 'atrasado' && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleRegistrarPagamento(mensalidade.id)}
-                                disabled={!!processando}
-                                className="bg-orange-50 text-orange-700 hover:bg-orange-100 hover:text-orange-800"
-                              >
-                                {processando === mensalidade.id ? "Processando..." : "Registrar Pagamento"}
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRegistrarPagamento(mensalidade.id)}
+                                  disabled={!!processando}
+                                  className="bg-orange-50 text-orange-700 hover:bg-orange-100 hover:text-orange-800"
+                                >
+                                  {processando === mensalidade.id ? "Processando..." : "Registrar Pagamento"}
+                                </Button>
+                                
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => abrirModalEditar(mensalidade)}>
+                                      <Edit2 className="mr-2 h-4 w-4" />
+                                      Editar Valor
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => abrirModalCancelar(mensalidade)}
+                                      className="text-red-600 focus:text-red-600"
+                                    >
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Cancelar Mensalidade
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             )}
                             
                             {mensalidade.status === 'cancelado' && (
@@ -278,6 +430,58 @@ const Mensalidades: React.FC = () => {
           </Card>
         </div>
       </section>
+      
+      {/* Modal para editar valor da mensalidade */}
+      <Dialog open={editarModalAberto} onOpenChange={setEditarModalAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Valor da Mensalidade</DialogTitle>
+            <DialogDescription>
+              Aluno: {mensalidadeSelecionada?.matricula?.aluno?.nome}<br />
+              Aula: {mensalidadeSelecionada?.matricula?.aula?.nome}<br />
+              Vencimento: {mensalidadeSelecionada ? formatarData(mensalidadeSelecionada.data_vencimento) : ''}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="valor">Novo valor</Label>
+              <Input
+                id="valor"
+                type="text"
+                placeholder="0,00"
+                value={novoValor}
+                onChange={(e) => setNovoValor(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setEditarModalAberto(false)}
+              disabled={!!processando}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleEditarValor}
+              disabled={!!processando}
+            >
+              {processando === mensalidadeSelecionada?.id ? "Atualizando..." : "Atualizar Valor"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal de confirmação para cancelar mensalidade */}
+      <ConfirmacaoExclusao
+        aberto={cancelarModalAberto}
+        titulo="Cancelar Mensalidade"
+        mensagem={`Tem certeza que deseja cancelar a mensalidade do aluno ${mensalidadeSelecionada?.matricula?.aluno?.nome} com vencimento em ${mensalidadeSelecionada ? formatarData(mensalidadeSelecionada.data_vencimento) : ''}?`}
+        onConfirmar={handleCancelarMensalidade}
+        onCancelar={() => setCancelarModalAberto(false)}
+      />
     </div>
   );
 };
