@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { format, addHours } from "date-fns";
-import { AgendamentoHorario, DiasSemana, Periodicidade } from "@/types/agenda";
+import { AgendamentoHorario } from "@/types/agenda";
 
 // Função para formatar a hora a partir do valor numérico (1 = 7:00, 2 = 8:00, etc)
 export const formatarHora = (horaIndice: number): string => {
@@ -10,11 +10,17 @@ export const formatarHora = (horaIndice: number): string => {
   return `${hora}:00`;
 };
 
+// Alias para compatibilidade com componentes existentes
+export const formatarHorario = formatarHora;
+
 // Função para converter o dia da semana de número para texto
 export const formatarDiaSemana = (diaSemana: number): string => {
   const diasDaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   return diasDaSemana[diaSemana];
 };
+
+// Alias para compatibilidade com componentes existentes
+export const getDiaDaSemanaTexto = formatarDiaSemana;
 
 // Função para buscar agendamentos por ID de aluno
 export const getAgendamentosByAlunoId = async (alunoId: string): Promise<AgendamentoHorario[]> => {
@@ -47,8 +53,8 @@ export const getAgendamentosByAlunoId = async (alunoId: string): Promise<Agendam
       aula_id: agendamento.aula_id,
       aula: {
         ...agendamento.aula,
-        // Garantir que a periodicidade seja do tipo Periodicidade
-        periodicidade: agendamento.aula.periodicidade as Periodicidade
+        // Garantir que a periodicidade seja do tipo correto
+        periodicidade: agendamento.aula.periodicidade
       }
     }));
   } catch (error) {
@@ -114,6 +120,9 @@ export const excluirAgendamento = async (id: string): Promise<boolean> => {
   }
 };
 
+// Alias para compatibilidade com componentes existentes
+export const removerAgendamento = excluirAgendamento;
+
 // Função para buscar todos os agendamentos com informações de alunos e aulas
 export const getAllAgendamentos = async (): Promise<AgendamentoHorario[]> => {
   try {
@@ -143,8 +152,8 @@ export const getAllAgendamentos = async (): Promise<AgendamentoHorario[]> => {
       aula_id: agendamento.aula_id,
       aula: {
         ...agendamento.aula,
-        // Garantir que a periodicidade seja do tipo Periodicidade
-        periodicidade: agendamento.aula.periodicidade as Periodicidade
+        // Garantir que a periodicidade seja do tipo correto
+        periodicidade: agendamento.aula.periodicidade
       }
     }));
   } catch (error) {
@@ -184,8 +193,8 @@ export const getAgendamentosByDiaSemana = async (diaSemana: number): Promise<Age
       aula_id: agendamento.aula_id,
       aula: {
         ...agendamento.aula,
-        // Garantir que a periodicidade seja do tipo Periodicidade
-        periodicidade: agendamento.aula.periodicidade as Periodicidade
+        // Garantir que a periodicidade seja do tipo correto
+        periodicidade: agendamento.aula.periodicidade
       }
     }));
   } catch (error) {
@@ -193,3 +202,6 @@ export const getAgendamentosByDiaSemana = async (diaSemana: number): Promise<Age
     throw error;
   }
 };
+
+// Alias para compatibilidade com componentes existentes
+export const getAgendamentos = getAllAgendamentos;
