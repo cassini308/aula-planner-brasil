@@ -18,8 +18,7 @@ export const loginAdmin = async (email: string, password: string) => {
     
     if (error) throw error;
     
-    // Verificar se o usuário é um administrador (isso poderia ser feito de várias maneiras,
-    // aqui estamos usando metadados do usuário como exemplo)
+    // Verificar se o usuário é um administrador
     const isAdmin = data.user.user_metadata?.role === 'admin';
     
     if (!isAdmin) {
@@ -75,6 +74,7 @@ export const verificarAdminAutenticado = async () => {
       return { autenticado: false };
     }
     
+    // Verificar nas metadata do usuário se ele tem a role 'admin'
     const isAdmin = sessionData.session.user.user_metadata?.role === 'admin';
     
     if (!isAdmin) {

@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { verificarAdminAutenticado, AdminUser } from "@/services/adminAuthService";
 import { verificarAutenticacao } from "@/services/authService";
+import { Music, LogOut, User, Menu, X } from 'lucide-react';
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const ProtectedAlunoRoute = ({ children }: { children: React.ReactNode }) => {
 const Navigation = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isAluno, setIsAluno] = useState<boolean>(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   useEffect(() => {
     const checkAuth = async () => {
@@ -92,34 +94,75 @@ const Navigation = () => {
     checkAuth();
   }, []);
   
+  const handleLogout = async () => {
+    try {
+      const { logout } = await import('@/services/authService');
+      await logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  
   return (
-    <nav className="bg-slate-800 text-white p-4">
+    <nav className="bg-slate-800 text-white p-4 sticky top-0 z-50">
       <div className="container mx-auto flex flex-wrap items-center justify-between">
-        <Link to="/" className="text-xl font-bold">Sistema de Aulas</Link>
-        <div className="flex flex-wrap space-x-0 sm:space-x-2">
-          <Link to="/"><Button variant="ghost" size="sm" className="text-sm">Home</Button></Link>
+        <Link to="/" className="flex items-center text-xl font-bold">
+          <Music className="mr-2 text-yellow-400" />
+          <span>Escola de Música Harmonia</span>
+        </Link>
+        
+        <div className="block lg:hidden">
+          <button
+            onClick={toggleMobileMenu}
+            className="p-2 focus:outline-none"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+        
+        <div className={`w-full lg:flex lg:items-center lg:w-auto ${mobileMenuOpen ? 'block' : 'hidden'} lg:block`}>
+          <div className="lg:flex lg:space-x-2 mt-4 lg:mt-0">
+            <Link to="/"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Home</Button></Link>
+            
+            {isAdmin && (
+              <div className="lg:flex lg:space-x-2">
+                <Link to="/alunos"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Alunos</Button></Link>
+                <Link to="/aulas"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Aulas</Button></Link>
+                <Link to="/agenda"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Agenda</Button></Link>
+                <Link to="/mensalidades"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Mensalidades</Button></Link>
+                <Link to="/avisos"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Avisos</Button></Link>
+                <Link to="/admin"><Button variant="ghost" size="sm" className="text-sm text-green-300 w-full lg:w-auto mb-2 lg:mb-0">Painel Admin</Button></Link>
+              </div>
+            )}
+            
+            {!isAdmin && !isAluno && (
+              <div className="lg:flex lg:space-x-2">
+                <Link to="/auto-cadastro"><Button variant="ghost" size="sm" className="text-sm w-full lg:w-auto mb-2 lg:mb-0">Auto Cadastro</Button></Link>
+                <Link to="/login-aluno"><Button variant="ghost" size="sm" className="text-sm text-yellow-300 w-full lg:w-auto mb-2 lg:mb-0">Área do Aluno</Button></Link>
+              </div>
+            )}
+            
+            {isAluno && !isAdmin && (
+              <Link to="/painel-aluno"><Button variant="ghost" size="sm" className="text-sm text-yellow-300 w-full lg:w-auto mb-2 lg:mb-0">Meu Painel</Button></Link>
+            )}
+          </div>
           
-          {isAdmin && (
-            <>
-              <Link to="/alunos"><Button variant="ghost" size="sm" className="text-sm">Alunos</Button></Link>
-              <Link to="/aulas"><Button variant="ghost" size="sm" className="text-sm">Aulas</Button></Link>
-              <Link to="/agenda"><Button variant="ghost" size="sm" className="text-sm">Agenda</Button></Link>
-              <Link to="/mensalidades"><Button variant="ghost" size="sm" className="text-sm">Mensalidades</Button></Link>
-              <Link to="/avisos"><Button variant="ghost" size="sm" className="text-sm">Avisos</Button></Link>
-              <Link to="/admin"><Button variant="ghost" size="sm" className="text-sm text-green-300">Painel Admin</Button></Link>
-            </>
-          )}
-          
-          {!isAdmin && !isAluno && (
-            <>
-              <Link to="/auto-cadastro"><Button variant="ghost" size="sm" className="text-sm">Auto Cadastro</Button></Link>
-              <Link to="/login-aluno"><Button variant="ghost" size="sm" className="text-sm text-yellow-300">Área do Aluno</Button></Link>
-              <Link to="/login-admin"><Button variant="ghost" size="sm" className="text-sm text-green-300">Admin</Button></Link>
-            </>
-          )}
-          
-          {isAluno && !isAdmin && (
-            <Link to="/painel-aluno"><Button variant="ghost" size="sm" className="text-sm text-yellow-300">Meu Painel</Button></Link>
+          {(isAdmin || isAluno) && (
+            <div className="mt-4 lg:mt-0 lg:ml-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-sm w-full lg:w-auto flex items-center justify-center"
+                onClick={handleLogout}
+              >
+                <LogOut size={16} className="mr-1" /> Sair
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -133,7 +176,7 @@ const App = () => (
     <Sonner />
     <BrowserRouter>
       <Navigation />
-      <div className="py-4">
+      <div>
         <Routes>
           <Route path="/" element={<Index />} />
           
