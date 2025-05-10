@@ -19,10 +19,15 @@ export const loginAdmin = async (email: string, password: string) => {
     if (error) throw error;
     
     // Verificar se o usuário é um administrador
-    const isAdmin = data.user.user_metadata?.role === 'admin';
+    const isAdmin = data.user.user_metadata?.role === 'admin' || data.user.id === '57692d14-117f-4def-b660-0a226859d8ba';
     
     if (!isAdmin) {
       throw new Error("Acesso negado. Esta conta não possui privilégios de administrador.");
+    }
+    
+    // Se o usuário é o específico mas não tem role admin, atualiza automaticamente
+    if (data.user.id === '57692d14-117f-4def-b660-0a226859d8ba' && data.user.user_metadata?.role !== 'admin') {
+      await definirComoAdmin(data.user.id);
     }
     
     return { success: true, data };
@@ -33,6 +38,23 @@ export const loginAdmin = async (email: string, password: string) => {
       title: "Falha no login",
       description: error.message || "Não foi possível fazer login. Verifique suas credenciais."
     });
+    return { success: false, error };
+  }
+};
+
+// Nova função para definir um usuário específico como admin
+export const definirComoAdmin = async (userId: string) => {
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      data: { role: 'admin' }
+    });
+    
+    if (error) throw error;
+    
+    console.log("Usuário definido como admin com sucesso");
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Erro ao definir usuário como admin:", error);
     return { success: false, error };
   }
 };
@@ -74,8 +96,9 @@ export const verificarAdminAutenticado = async () => {
       return { autenticado: false };
     }
     
-    // Verificar nas metadata do usuário se ele tem a role 'admin'
-    const isAdmin = sessionData.session.user.user_metadata?.role === 'admin';
+    // Verificar nas metadata do usuário se ele tem a role 'admin' ou se é o ID específico
+    const isAdmin = sessionData.session.user.user_metadata?.role === 'admin' || 
+                   sessionData.session.user.id === '57692d14-117f-4def-b660-0a226859d8ba';
     
     if (!isAdmin) {
       return { autenticado: false };
