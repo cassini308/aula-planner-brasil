@@ -17,6 +17,7 @@ import LoginAluno from "./pages/LoginAluno";
 import LoginAdmin from "./pages/LoginAdmin";
 import PainelAdmin from "./pages/PainelAdmin";
 import Avisos from "./pages/Avisos";
+import ConfiguracoesSite from "./pages/ConfiguracoesSite"; // Nova importação
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { verificarAdminAutenticado, AdminUser } from "@/services/adminAuthService";
@@ -214,6 +215,11 @@ const App = () => (
           <Route path="/admin" element={
             <ProtectedAdminRoute>
               <PainelAdmin />
+            </ProtectedAdminRoute>
+          } />
+          <Route path="/configuracoes-site" element={
+            <ProtectedAdminRoute>
+              <ConfiguracoesSite />
             </ProtectedAdminRoute>
           } />
           

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { LogOut, Users, BookOpen, Calendar, CreditCard, Bell } from 'lucide-react';
+import { LogOut, Users, BookOpen, Calendar, CreditCard, Bell, Settings } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { verificarAdminAutenticado, logout } from '@/services/adminAuthService';
 import { Link } from 'react-router-dom';
@@ -104,7 +104,7 @@ const PainelAdmin = () => {
       </Card>
       
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="grid grid-cols-5 mb-4">
+        <TabsList className="grid grid-cols-6 mb-4">
           <TabsTrigger value="dashboard" className="flex items-center">
             Dashboard
           </TabsTrigger>
@@ -119,6 +119,9 @@ const PainelAdmin = () => {
           </TabsTrigger>
           <TabsTrigger value="financeiro" className="flex items-center">
             <CreditCard size={16} className="mr-2" /> Financeiro
+          </TabsTrigger>
+          <TabsTrigger value="configuracoes" className="flex items-center">
+            <Settings size={16} className="mr-2" /> Config
           </TabsTrigger>
         </TabsList>
         
@@ -204,6 +207,21 @@ const PainelAdmin = () => {
                     </CardContent>
                   </Card>
                 </Link>
+                
+                <Link to="/configuracoes-site" className="w-full">
+                  <Card className="transition-all hover:shadow-md">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center">
+                        <Settings className="w-5 h-5 mr-2" /> Configurar Site
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">
+                        Editar o nome da escola e o logo
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -255,6 +273,19 @@ const PainelAdmin = () => {
               <CardDescription>
                 <Link to="/mensalidades">
                   <Button variant="link" className="p-0">Ir para a página de Mensalidades →</Button>
+                </Link>
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="configuracoes">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configurações do Site</CardTitle>
+              <CardDescription>
+                <Link to="/configuracoes-site">
+                  <Button variant="link" className="p-0">Ir para a página de Configurações →</Button>
                 </Link>
               </CardDescription>
             </CardHeader>
