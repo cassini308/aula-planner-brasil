@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
-import { User, MessageSquare, CreditCard, Calendar, Clock, Bell, LogOut } from 'lucide-react';
+import { User, MessageSquare, CreditCard, Calendar, Clock, Bell, LogOut, Lock } from 'lucide-react';
 import { Aluno } from '@/types/aula';
 import { verificarAutenticacao, logout } from '@/services/authService';
 import { getMensalidadesByAluno, formatarStatusMensalidade, getStatusMensalidadeClass } from '@/services/mensalidadeService';
@@ -18,6 +18,7 @@ import { formatarData, formatarMoeda } from '@/services/alunoService';
 import { getAvisosByAlunoId } from '@/services/avisoService';
 import { formatarTelefone, formatarCpf } from '@/services/alunoService';
 import MatriculasAluno from '@/components/MatriculasAluno';
+import AlterarSenha from '@/components/AlterarSenha';
 
 const PainelAlunoPrivado = () => {
   const [aluno, setAluno] = useState<Aluno | null>(null);
@@ -129,7 +130,7 @@ const PainelAlunoPrivado = () => {
       </Card>
       
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-5 mb-4">
           <TabsTrigger value="dados" className="flex items-center">
             <User size={16} className="mr-2" /> Meus Dados
           </TabsTrigger>
@@ -141,6 +142,9 @@ const PainelAlunoPrivado = () => {
           </TabsTrigger>
           <TabsTrigger value="agenda" className="flex items-center">
             <Calendar size={16} className="mr-2" /> Minha Agenda
+          </TabsTrigger>
+          <TabsTrigger value="senha" className="flex items-center">
+            <Lock size={16} className="mr-2" /> Alterar Senha
           </TabsTrigger>
         </TabsList>
         
@@ -293,6 +297,10 @@ const PainelAlunoPrivado = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="senha">
+          <AlterarSenha />
         </TabsContent>
       </Tabs>
     </div>

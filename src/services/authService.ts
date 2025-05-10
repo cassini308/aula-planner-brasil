@@ -60,6 +60,27 @@ export const registrarAluno = async (email: string, password: string, alunoId: s
   }
 };
 
+// Alteração de senha do aluno
+export const alterarSenhaAluno = async (password: string) => {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password
+    });
+    
+    if (error) throw error;
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("Erro ao alterar senha:", error);
+    toast({
+      variant: "destructive",
+      title: "Falha na alteração de senha",
+      description: error.message || "Não foi possível alterar a senha."
+    });
+    return { success: false, error };
+  }
+};
+
 // Logout
 export const logout = async () => {
   try {
