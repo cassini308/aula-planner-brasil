@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -167,7 +166,7 @@ export function AdicionarHorario({ onAgendamentoAdicionado }: AdicionarHorarioPr
                   <SelectContent>
                     {Array.from({ length: 14 }, (_, i) => i + 7).map((hora) => (
                       <SelectItem key={hora} value={hora.toString()}>
-                        {`${hora}:00`}
+                        {`${hora.toString().padStart(2, '0')}:00`}
                       </SelectItem>
                     ))}
                   </SelectContent>

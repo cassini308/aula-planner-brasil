@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ConfiguracoesSite {
@@ -83,18 +82,21 @@ export const uploadLogo = async (file: File): Promise<string | null> => {
     const filePath = `logos/${fileName}`;
     
     // Upload do arquivo
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError, data } = await supabase.storage
       .from('public')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
       
     if (uploadError) throw uploadError;
     
     // Obter a URL pública do arquivo
-    const { data } = supabase.storage
+    const { data: { publicUrl } } = supabase.storage
       .from('public')
       .getPublicUrl(filePath);
       
-    return data.publicUrl;
+    return publicUrl;
   } catch (error) {
     console.error("Erro ao fazer upload da logo:", error);
     return null;
