@@ -65,3 +65,29 @@ export const salvarConfiguracoesSite = async (configuracoes: ConfiguracoesSite):
     throw error;
   }
 };
+
+// Upload de logo
+export const uploadLogo = async (file: File): Promise<string | null> => {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `logo-${Date.now()}.${fileExt}`;
+    const filePath = `logos/${fileName}`;
+    
+    // Upload do arquivo
+    const { error: uploadError } = await supabase.storage
+      .from('public')
+      .upload(filePath, file);
+      
+    if (uploadError) throw uploadError;
+    
+    // Obter a URL pública do arquivo
+    const { data } = supabase.storage
+      .from('public')
+      .getPublicUrl(filePath);
+      
+    return data.publicUrl;
+  } catch (error) {
+    console.error("Erro ao fazer upload da logo:", error);
+    return null;
+  }
+};

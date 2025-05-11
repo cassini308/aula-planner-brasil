@@ -188,6 +188,24 @@ export type Database = {
           },
         ]
       }
+      configuracoes_site: {
+        Row: {
+          id: string
+          logourl: string | null
+          nomeescola: string
+        }
+        Insert: {
+          id?: string
+          logourl?: string | null
+          nomeescola: string
+        }
+        Update: {
+          id?: string
+          logourl?: string | null
+          nomeescola?: string
+        }
+        Relationships: []
+      }
       matriculas: {
         Row: {
           aluno_id: string
