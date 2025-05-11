@@ -12,7 +12,7 @@ import { Music, Upload, Shield, Key, Plus, UserPlus, Users } from "lucide-react"
 import { salvarConfiguracoesSite, getConfiguracoesSite, uploadLogo } from "@/services/configuracoesService";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlterarSenha } from "@/components/AlterarSenha";
+import AlterarSenha from "@/components/AlterarSenha";
 
 const formSchema = z.object({
   nomeEscola: z.string().min(3, "O nome da escola deve ter pelo menos 3 caracteres"),
@@ -172,7 +172,10 @@ export function ConfiguracaoSite() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-4 p-6 border border-dashed rounded-md bg-gray-50">
+                      <div 
+                        className="flex flex-col items-center gap-4 p-6 border border-dashed rounded-md bg-gray-50 cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
                         <Upload size={32} className="text-gray-400" />
                         <p className="text-sm text-gray-500">Clique para selecionar uma imagem</p>
                       </div>

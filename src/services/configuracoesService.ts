@@ -23,7 +23,16 @@ export const getConfiguracoesSite = async (): Promise<ConfiguracoesSite | null> 
       throw error;
     }
 
-    return data as ConfiguracoesSite;
+    // Converter os nomes dos campos para o formato esperado pelo front-end
+    if (data) {
+      return {
+        id: data.id,
+        nomeEscola: data.nomeescola,
+        logoUrl: data.logourl
+      };
+    }
+
+    return null;
   } catch (error) {
     console.error("Erro ao buscar configurações do site:", error);
     return null;
@@ -41,8 +50,8 @@ export const salvarConfiguracoesSite = async (configuracoes: ConfiguracoesSite):
       const { error } = await supabase
         .from(TABELA)
         .update({
-          nomeEscola: configuracoes.nomeEscola,
-          logoUrl: configuracoes.logoUrl || null
+          nomeescola: configuracoes.nomeEscola,
+          logourl: configuracoes.logoUrl || null
         })
         .eq('id', configExistente.id);
 
@@ -52,8 +61,8 @@ export const salvarConfiguracoesSite = async (configuracoes: ConfiguracoesSite):
       const { error } = await supabase
         .from(TABELA)
         .insert({
-          nomeEscola: configuracoes.nomeEscola,
-          logoUrl: configuracoes.logoUrl || null
+          nomeescola: configuracoes.nomeEscola,
+          logourl: configuracoes.logoUrl || null
         });
 
       if (error) throw error;
